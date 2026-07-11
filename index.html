@@ -11,7 +11,7 @@
     --brand-3: #6c5ce7;
     --text-main: #2d3436;
     --text-sub: #636e72;
-    --bg-gradient: linear-gradient(135deg, #f5f7fb 0%, #e4e7eb 100%);
+    --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #e4e7eb 100%);
   }
   
   * { box-sizing: border-box; }
@@ -26,11 +26,41 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    position: relative;
+  }
+
+  /* 💡 오른쪽 상단 '생명이 신기해' 바로가기 단추 스타일 */
+  .top-link-btn {
+    position: absolute;
+    top: 30px;
+    right: 40px;
+    background: linear-gradient(135deg, #2ed573, #10ac84);
+    color: white;
+    text-decoration: none;
+    padding: 12px 24px;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    box-shadow: 0 6px 20px rgba(46, 213, 115, 0.3);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    z-index: 10;
+  }
+
+  .top-link-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(46, 213, 115, 0.45);
+  }
+
+  .top-link-btn:active {
+    transform: scale(0.96);
   }
 
   header {
     text-align: center;
-    padding: 60px 20px 40px;
+    padding: 80px 20px 40px;
   }
 
   header h1 {
@@ -188,9 +218,26 @@
     color: #a4b0be;
     font-weight: 600;
   }
+
+  /* 📱 모바일 화면을 위한 반응형 스타일 조절 */
+  @media (max-width: 768px) {
+    .top-link-btn {
+      position: static;
+      margin: 20px auto 0;
+      width: fit-content;
+    }
+    header {
+      padding: 40px 20px 30px;
+    }
+  }
 </style>
 </head>
 <body oncontextmenu="return false" onselectstart="return false" ondragstart="return false">
+
+  <!-- 💡 오른쪽 상단 버튼 추가 -->
+  <a href="https://taojinhh.github.io/singihae/" target="_blank" class="top-link-btn">
+    <span>🌱 생명이 신기해 바로가기</span>
+  </a>
 
   <header>
     <h1>✨ 과학이 신기해</h1>
@@ -209,7 +256,7 @@
         <h3 class="card-title">과학탐험대 보물지도</h3>
         <div class="desc-section">
           <h4>📚 학습 내용 (전체 단원)</h4>
-          <p>지권의 변화, 여러 가지 힘, 기체의 성질, 물질의 상태 변화, 빛과 파동, 생물의 다양성, 과학과 나의 미래[cite: 1, 2]</p>
+          <p>지권의 변화, 여러 가지 힘, 기체의 성질, 물질의 상태 변화, 빛과 파동, 생물의 다양성, 과학과 나의 미래</p>
         </div>
         <div class="desc-section">
           <h4>🎮 게임 방식</h4>
@@ -229,11 +276,11 @@
         <h3 class="card-title">과학 공룡 진화기</h3>
         <div class="desc-section">
           <h4>📚 학습 내용 (전체 단원)</h4>
-          <p>물질의 구성, 전기와 자기, 태양계, 식물과 에너지, 동물과 에너지, 물질의 특성, 수권과 해수의 순환, 열과 우리 생활[cite: 2]</p>
+          <p>물질의 구성, 전기와 자기, 태양계, 식물과 에너지, 동물과 에너지, 물질의 특성, 수권과 해수의 순환, 열과 우리 생활</p>
         </div>
         <div class="desc-section">
           <h4>🎮 게임 방식</h4>
-          <p>문제를 맞히면 경험치와 힘이 오르고 공룡이 진화합니다. 8개 단원을 정복해 전설의 알파 공룡을 만들어보세요[cite: 2]!</p>
+          <p>문제를 맞히면 경험치와 힘이 오르고 공룡이 진화합니다. 8개 단원을 정복해 전설의 알파 공룡을 만들어보세요!</p>
         </div>
         <a href="중2_과학공룡진화기.html" class="play-btn">게임 시작하기</a>
       </div>
@@ -249,11 +296,11 @@
         <h3 class="card-title">과학 진화 카드 배틀</h3>
         <div class="desc-section">
           <h4>📚 학습 내용 (전체 단원)</h4>
-          <p>화학 반응의 규칙, 기권과 날씨, 운동과 에너지, 자극과 반응, 생식과 유전, 에너지 전환과 보존, 별과 우주[cite: 1]</p>
+          <p>화학 반응의 규칙, 기권과 날씨, 운동과 에너지, 자극과 반응, 생식과 유전, 에너지 전환과 보존, 별과 우주</p>
         </div>
         <div class="desc-section">
           <h4>🎮 게임 방식</h4>
-          <p>단원별 퀴즈를 풀어 다양한 개념 카드를 획득합니다[cite: 1]. 카드를 조합해 보스를 소환하고 과학 마스터로 진화하세요[cite: 1]!</p>
+          <p>단원별 퀴즈를 풀어 다양한 개념 카드를 획득합니다. 카드를 조합해 보스를 소환하고 과학 마스터로 진화하세요!</p>
         </div>
         <a href="중3_과학진화_카드게임.html" class="play-btn">게임 시작하기</a>
       </div>
