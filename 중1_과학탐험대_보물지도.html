@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>과학 탐험대 — 숨겨진 보물지도</title>
+<style>
+  :root{
+    --gold:#f5c542; --gold2:#e0a920; --ink:#2b2016;
+    --parch:#f4e4c1; --parch2:#e7d0a0;
+    --sea:#1c3a5e; --sea2:#0e2238;
+    --good:#3ecf8e; --bad:#ef5a6f;
+    --panel:rgba(255,255,255,.65);
+    --card:rgba(255,255,255,.66); --cardbd:rgba(122,110,170,.22);
+    --muted:#7d769a; --soft:#655f83; --ink2:#4b4763;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{
+    font-family:'Segoe UI','Malgun Gothic','Apple SD Gothic Neo',sans-serif;
+    background:
+      radial-gradient(1000px 520px at 12% -5%, #ffe0ee 0%, transparent 55%),
+      radial-gradient(950px 520px at 92% 0%, #d8ecff 0%, transparent 55%),
+      radial-gradient(900px 620px at 50% 112%, #d9f7ea 0%, transparent 55%),
+      linear-gradient(160deg,#f4ecff 0%,#eaf3ff 45%,#fdeef5 100%);
+    background-attachment:fixed;
+    color:#4b4763; min-height:100%; overflow-x:hidden;
+    user-select:none;
+  }
+  .wrap{max-width:1080px;margin:0 auto;padding:16px 16px 90px;}
+
+  /* ===== Header ===== */
+  header.top{
+    display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+    background:linear-gradient(135deg,rgba(255,255,255,.8),rgba(255,255,255,.5));
+    border:1px solid rgba(122,110,170,.22);border-radius:18px;padding:14px 18px;
+    box-shadow:0 10px 28px rgba(150,140,190,.22);
+  }
+  .title h1{font-size:clamp(20px,4vw,30px);letter-spacing:.5px;
+    background:linear-gradient(90deg,#7c5cff,#c8579e,#ff8a5c);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .title p{font-size:12.5px;color:#7d769a;margin-top:2px;}
+
+  .avatarBox{display:flex;align-items:center;gap:12px;margin-left:auto;}
+  .avatar{
+    width:64px;height:64px;border-radius:50%;display:grid;place-items:center;font-size:34px;
+    background:radial-gradient(circle at 35% 30%,#fff6d8,#f5c542 55%,#c98a12);
+    box-shadow:0 0 0 4px rgba(245,197,66,.3),0 6px 16px rgba(200,150,60,.4);
+    animation:bob 3s ease-in-out infinite;
+  }
+  @keyframes bob{50%{transform:translateY(-6px)}}
+  .lvlInfo{min-width:150px;}
+  .lvlInfo .rank{font-weight:700;font-size:15px;color:#c07d12;}
+  .lvlInfo .sub{font-size:11px;color:#8a83a3;}
+  .xpbar{height:9px;border-radius:6px;background:rgba(90,80,130,.16);margin-top:6px;overflow:hidden;border:1px solid rgba(122,110,170,.2);}
+  .xpfill{height:100%;width:0;background:linear-gradient(90deg,#38c98a,#8ef0c4);transition:width .6s cubic-bezier(.2,.8,.2,1);}
+  .coins{display:flex;align-items:center;gap:6px;font-weight:700;color:#c07d12;font-size:14px;margin-top:6px;}
+
+  /* ===== Map ===== */
+  .mapCard{margin-top:18px;background:var(--card);border:1px solid var(--cardbd);
+    border-radius:18px;padding:16px 16px 18px;box-shadow:0 8px 24px rgba(150,140,190,.16);}
+  .mapCard h2{font-size:16px;margin-bottom:4px;color:#b9770f;}
+  .mapCard .desc{font-size:12px;color:#7d769a;margin-bottom:12px;}
+  .mapGrid{position:relative;display:grid;grid-template-columns:repeat(3,1fr);grid-auto-rows:1fr;gap:8px;
+    border-radius:14px;overflow:hidden;background:#bfe0f2;}
+  .mapGrid::before{content:"";position:absolute;inset:0;z-index:0;
+    background:
+      radial-gradient(closest-side at 50% 60%, #7fcf9b 0 32%, #9adcaf 40%, transparent 70%),
+      radial-gradient(closest-side at 30% 40%, #f0d9a3 0 12%, transparent 40%),
+      radial-gradient(closest-side at 70% 55%, #e7c98a 0 10%, transparent 38%),
+      linear-gradient(180deg,#9fd3f0,#6fb4e0);}
+  .mapGrid::after{content:"🏝️ 🌋 🐚 ⚓";position:absolute;inset:0;z-index:0;display:grid;place-items:center;
+    font-size:clamp(22px,6vw,42px);letter-spacing:14px;opacity:.35;}
+  .tile{position:relative;z-index:2;aspect-ratio:16/9;border-radius:10px;display:grid;place-items:center;
+    font-size:26px;font-weight:800;cursor:default;
+    background:linear-gradient(145deg,#ebe6f6,#ddd6ec);
+    border:1px dashed rgba(122,110,170,.35);color:#9a93b3;transition:.5s;overflow:hidden;}
+  .tile .lock{font-size:22px;opacity:.7;}
+  .tile.done{background:transparent;border:2px solid rgba(224,169,32,.75);color:#fff;
+    box-shadow:0 0 16px rgba(245,197,66,.45);animation:pop .5s;}
+  @keyframes pop{0%{transform:scale(.6);opacity:0}70%{transform:scale(1.08)}100%{transform:scale(1)}}
+  .tile.done .pieceIcon{font-size:30px;filter:drop-shadow(0 2px 4px rgba(0,0,0,.6));}
+  .tile .pn{position:absolute;left:6px;top:4px;font-size:10px;color:#8a83a3;font-weight:600;}
+  .treasureBadge{margin-top:12px;text-align:center;font-size:13px;color:#7d769a;}
+
+  /* ===== Unit cards ===== */
+  .sectionTitle{margin:22px 4px 12px;font-size:16px;color:#b9770f;display:flex;align-items:center;gap:8px;}
+  .units{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;}
+  .unit{position:relative;border-radius:16px;padding:16px;cursor:pointer;overflow:hidden;
+    border:1px solid var(--cardbd);transition:transform .2s,box-shadow .2s;
+    background:linear-gradient(160deg,rgba(255,255,255,.82),rgba(255,255,255,.58));
+    box-shadow:0 6px 18px rgba(150,140,190,.16);}
+  .unit:hover{transform:translateY(-4px);box-shadow:0 14px 28px rgba(150,140,190,.28);}
+  .unit .uicon{font-size:34px;filter:drop-shadow(0 3px 5px rgba(150,140,190,.35));}
+  .unit h3{font-size:16px;margin:8px 0 4px;}
+  .unit .utag{font-size:11.5px;color:#7d769a;line-height:1.45;min-height:34px;}
+  .unit .progRow{display:flex;align-items:center;gap:6px;margin-top:10px;}
+  .stars{font-size:13px;letter-spacing:1px;}
+  .miniBar{flex:1;height:7px;border-radius:5px;background:rgba(90,80,130,.16);overflow:hidden;}
+  .miniFill{height:100%;width:0;transition:width .5s;}
+  .clearFlag{position:absolute;top:10px;right:10px;font-size:11px;font-weight:700;padding:3px 8px;border-radius:20px;
+    background:rgba(62,207,142,.2);color:#1f9d6b;border:1px solid rgba(62,207,142,.5);display:none;}
+  .unit.cleared .clearFlag{display:block;}
+  .unit .bar-accent{position:absolute;left:0;top:0;bottom:0;width:5px;}
+
+  /* ===== Hidden eggs ===== */
+  .egg{position:fixed;z-index:40;font-size:16px;cursor:pointer;opacity:.5;filter:drop-shadow(0 0 6px #fff6);
+    animation:tw 2.4s ease-in-out infinite;transition:transform .2s;}
+  .egg:hover{transform:scale(1.5);opacity:1;}
+  @keyframes tw{50%{opacity:.95;transform:scale(1.15)}}
+
+  /* ===== Screens / Modal ===== */
+  .screen{display:none;}
+  .screen.active{display:block;animation:fade .4s;}
+  @keyframes fade{from{opacity:0;transform:translateY(10px)}}
+
+  .backBtn{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.7);
+    border:1px solid var(--cardbd);color:#4b4763;padding:8px 14px;border-radius:20px;cursor:pointer;font-size:13px;box-shadow:0 3px 10px rgba(150,140,190,.14);}
+  .backBtn:hover{background:#fff;}
+  .resetBtn{display:inline-flex;align-items:center;gap:6px;background:rgba(239,90,111,.1);
+    border:1px solid rgba(239,90,111,.35);color:#c14b63;padding:8px 16px;border-radius:20px;
+    cursor:pointer;font-size:12.5px;font-weight:700;transition:.15s;}
+  .resetBtn:hover{background:rgba(239,90,111,.2);}
+
+  .unitHead{display:flex;align-items:center;gap:14px;margin:16px 0 8px;flex-wrap:wrap;}
+  .unitHead .big{font-size:44px;}
+  .unitHead h2{font-size:22px;}
+  .unitStory{background:rgba(255,255,255,.62);border-left:4px solid var(--gold);border-radius:0 12px 12px 0;box-shadow:0 4px 14px rgba(150,140,190,.12);
+    padding:12px 16px;font-size:13.5px;line-height:1.6;color:#4b4763;margin:8px 0 18px;}
+
+  .stageList{display:grid;gap:12px;}
+  .stageCard{display:flex;align-items:center;gap:14px;background:var(--card);
+    border:1px solid var(--cardbd);border-radius:14px;padding:14px 16px;cursor:pointer;transition:.2s;box-shadow:0 5px 16px rgba(150,140,190,.14);}
+  .stageCard:hover{background:#fff;transform:translateX(4px);}
+  .stageCard.locked{opacity:.5;cursor:not-allowed;filter:grayscale(.5);}
+  .stageNum{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:22px;flex-shrink:0;
+    background:linear-gradient(145deg,#f5c542,#c98a12);color:#2b2016;font-weight:800;}
+  .stageMeta{flex:1;}
+  .stageMeta h4{font-size:15px;}
+  .stageMeta .lvltag{font-size:11px;padding:2px 8px;border-radius:10px;display:inline-block;margin-top:4px;font-weight:700;}
+  .lv-easy{background:rgba(62,207,142,.18);color:#1f9d6b;}
+  .lv-mid{background:rgba(245,197,66,.18);color:#b9770f;}
+  .lv-hard{background:rgba(150,120,255,.22);color:#6a4fb5;}
+  .stageStars{font-size:14px;color:#f5c542;flex-shrink:0;}
+
+  /* Quiz */
+  .quizWrap{max-width:640px;margin:0 auto;}
+  .qbar{display:flex;align-items:center;gap:10px;margin:14px 0;}
+  .qprog{flex:1;height:8px;border-radius:5px;background:rgba(90,80,130,.16);overflow:hidden;}
+  .qprogFill{height:100%;width:0;background:linear-gradient(90deg,#f5c542,#b9770f);transition:width .4s;}
+  .qcount{font-size:12px;color:#7d769a;white-space:nowrap;}
+  .qcard{background:var(--card);border:1px solid var(--cardbd);border-radius:16px;padding:20px;box-shadow:0 8px 24px rgba(150,140,190,.16);}
+  .qfig{margin:2px 0 10px;display:flex;justify-content:center;}
+  .qfig:empty{display:none;}
+  .qfig svg{width:100%;max-width:340px;height:auto;background:linear-gradient(160deg,#ffffff,#f5f1ff);
+    border:1px solid var(--cardbd);border-radius:14px;padding:8px;box-shadow:inset 0 1px 0 #fff;}
+  .qtag{font-size:11px;color:#b9770f;font-weight:700;letter-spacing:.5px;}
+  .qtext{font-size:18px;line-height:1.5;margin:8px 0 16px;font-weight:600;}
+  .opts{display:grid;gap:10px;}
+  .opt{text-align:left;background:rgba(255,255,255,.72);border:1.5px solid rgba(122,110,170,.24);
+    color:#4b4763;padding:13px 15px;border-radius:12px;cursor:pointer;font-size:15px;transition:.15s;}
+  .opt:hover{background:#fff;border-color:rgba(245,197,66,.7);}
+  .opt.correct{background:rgba(62,207,142,.2);border-color:var(--good);color:#0f7a52;}
+  .opt.wrong{background:rgba(239,90,111,.18);border-color:var(--bad);color:#b3364c;}
+  .opt.disabled{pointer-events:none;}
+  .explain{margin-top:14px;padding:12px 14px;border-radius:12px;font-size:13.5px;line-height:1.6;display:none;
+    background:rgba(255,255,255,.7);border:1px solid var(--cardbd);}
+  .explain.show{display:block;animation:fade .3s;}
+  .explain b{color:#b9770f;}
+  .nextBtn{margin-top:16px;width:100%;padding:14px;border:none;border-radius:12px;font-size:16px;font-weight:800;
+    background:linear-gradient(135deg,#f5c542,#e0a920);color:#2b2016;cursor:pointer;display:none;}
+  .nextBtn.show{display:block;animation:fade .3s;}
+  .nextBtn:hover{filter:brightness(1.08);}
+
+  /* Overlay modal */
+  .overlay{position:fixed;inset:0;z-index:60;background:rgba(70,60,100,.4);backdrop-filter:blur(3px);
+    display:none;align-items:center;justify-content:center;padding:20px;}
+  .overlay.show{display:flex;animation:fade .3s;}
+  .modal{max-width:460px;width:100%;background:linear-gradient(160deg,#ffffff,#f3eeff);
+    border:1px solid rgba(245,197,66,.5);border-radius:20px;padding:24px;text-align:center;
+    box-shadow:0 20px 55px rgba(90,70,140,.35);}
+  .modal .em{font-size:52px;}
+  .modal h3{font-size:22px;margin:8px 0;color:#b9770f;}
+  .modal p{font-size:14px;color:#4b4763;line-height:1.6;}
+  .modal .starRow{font-size:34px;letter-spacing:6px;margin:12px 0;}
+  .mbtns{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap;justify-content:center;}
+  .mbtn{flex:1;min-width:120px;padding:12px;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;}
+  .mbtn.primary{background:linear-gradient(135deg,#f5c542,#e0a920);color:#2b2016;}
+  .mbtn.ghost{background:rgba(120,110,170,.12);color:#4b4763;border:1px solid var(--cardbd);}
+  .mbtn:hover{filter:brightness(1.1);}
+
+  /* Remedial lesson */
+  .lessonBox{text-align:left;background:rgba(120,110,170,.08);border-radius:12px;padding:14px 16px;margin:14px 0;
+    font-size:13.5px;line-height:1.7;border:1px solid var(--cardbd);}
+  .lessonBox li{margin-left:18px;margin-bottom:5px;}
+  .lessonBox .k{color:#b9770f;font-weight:700;}
+
+  /* Egg popup / trivia */
+  .triviaPop{max-width:400px;}
+  .triviaPop .em{font-size:44px;}
+
+  /* Footer copyright */
+  footer.copy{position:fixed;left:0;right:0;bottom:0;z-index:30;text-align:center;font-size:11px;
+    color:#8a83a3;background:linear-gradient(0deg,rgba(250,244,255,.95),rgba(250,244,255,0));padding:10px 8px 8px;
+    pointer-events:none;}
+  footer.copy b{color:#655f83;}
+
+  /* ===== 보물상자 연출 ===== */
+  .modal{max-height:90vh;overflow-y:auto;}
+  .chestScene{position:relative;height:150px;margin:8px auto 2px;display:flex;align-items:flex-end;justify-content:center;}
+  .chest{position:relative;width:132px;height:96px;}
+  .chest.shake{animation:chestShake .1s linear 6;}
+  @keyframes chestShake{25%{transform:translateX(-4px) rotate(-2deg)}75%{transform:translateX(4px) rotate(2deg)}}
+  .rays{position:absolute;left:50%;top:30px;width:300px;height:300px;transform:translate(-50%,-50%) scale(.2);opacity:0;z-index:0;
+    background:repeating-conic-gradient(from 0deg,rgba(255,206,80,.55) 0deg 9deg,transparent 9deg 26deg);
+    -webkit-mask:radial-gradient(circle,transparent 20%,#000 22%);mask:radial-gradient(circle,transparent 20%,#000 22%);
+    transition:.6s;pointer-events:none;}
+  .chest.open .rays{opacity:.8;transform:translate(-50%,-50%) scale(1);animation:raySpin 10s linear infinite;}
+  @keyframes raySpin{to{transform:translate(-50%,-50%) rotate(360deg)}}
+  .chest-glow{position:absolute;left:50%;top:24px;width:16px;height:16px;transform:translate(-50%,-50%) scale(0);
+    border-radius:50%;background:radial-gradient(circle,#fffbe6,#ffd75e 45%,transparent 72%);z-index:1;transition:.6s;}
+  .chest.open .chest-glow{transform:translate(-50%,-50%) scale(7);opacity:.95;}
+  .chest-prize{position:absolute;left:50%;top:14px;transform:translate(-50%,30px) scale(0);z-index:3;
+    transition:transform .7s cubic-bezier(.2,1.5,.4,1) .15s;}
+  .chest.open .chest-prize{transform:translate(-50%,-28px) scale(1);}
+  .chest-prize .spin{display:inline-block;font-size:54px;filter:drop-shadow(0 4px 8px rgba(180,130,20,.5));}
+  .chest.open .chest-prize .spin{animation:prizeSpin 2.8s linear .5s infinite;}
+  @keyframes prizeSpin{to{transform:rotateY(360deg)}}
+  .chest-body{position:absolute;bottom:0;width:132px;height:60px;border-radius:6px 6px 10px 10px;
+    background:linear-gradient(#b06a2c,#7c451c);border:3px solid #562f12;box-shadow:inset 0 -6px 0 rgba(0,0,0,.22);z-index:4;}
+  .chest-band{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:22px;height:60px;
+    background:linear-gradient(#e6a83a,#b9770f);border-left:2px solid #8a5410;border-right:2px solid #8a5410;z-index:5;}
+  .chest-lock{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);width:20px;height:22px;border-radius:4px;
+    background:radial-gradient(circle at 40% 30%,#ffe98a,#e0a920);border:2px solid #8a5410;z-index:6;}
+  .chest-lid{position:absolute;top:0;left:0;width:132px;height:40px;border-radius:12px 12px 3px 3px;
+    background:linear-gradient(#bd7530,#8f5020);border:3px solid #562f12;transform-origin:50% 100%;z-index:7;
+    transition:transform .7s cubic-bezier(.34,1.4,.5,1);}
+  .chest.open .chest-lid{transform:rotate(-112deg);}
+  .tada{font-size:32px;font-weight:900;letter-spacing:1px;opacity:0;transform:scale(.4);
+    background:linear-gradient(90deg,#f0a500,#e0662a,#d6417f,#7c5cff);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .tada.go{animation:tadaPop .6s cubic-bezier(.2,1.6,.4,1) forwards;}
+  @keyframes tadaPop{60%{transform:scale(1.16)}100%{opacity:1;transform:scale(1)}}
+  .certCard{margin:12px 0 2px;padding:14px;border-radius:14px;border:2px dashed rgba(245,197,66,.75);
+    background:linear-gradient(160deg,#fffdf5,#fff3d9);text-align:center;}
+  .certTitle{font-size:11px;color:#b9770f;font-weight:700;letter-spacing:3px;}
+  .certName{font-size:17px;font-weight:800;color:#4b4763;margin:5px 0;line-height:1.4;}
+  .certStats{font-size:12px;color:#7d769a;margin-top:6px;}
+  .secretCode{margin-top:8px;font-size:13px;font-weight:800;color:#7c5cff;letter-spacing:1px;}
+  .reveal{opacity:0;transform:translateY(10px);}
+  .reveal.go{animation:revUp .5s ease forwards;}
+  @keyframes revUp{to{opacity:1;transform:translateY(0)}}
+  .confetti{position:fixed;top:-10px;font-size:18px;z-index:70;pointer-events:none;animation:fall linear forwards;}
+  @keyframes fall{to{transform:translateY(110vh) rotate(540deg);opacity:.2}}
+
+  @media(max-width:520px){
+    .avatarBox{margin-left:0;}
+    .unitHead .big{font-size:36px;}
+    .qtext{font-size:16px;}
+  }
+</style>
+</head>
+<body oncontextmenu="return false" onselectstart="return false" ondragstart="return false">
+<div class="wrap">
+
+  <!-- HEADER -->
+  <header class="top">
+    <div class="title">
+      <h1>🗺️ 과학 탐험대 — 숨겨진 보물지도</h1>
+      <p>문제를 풀어 지도 조각을 열고, 탐험가로 <b>진화</b>하라! · 중학 과학 1</p>
+    </div>
+    <div class="avatarBox">
+      <div class="avatar" id="avatar">🔰</div>
+      <div class="lvlInfo">
+        <div class="rank" id="rankName">호기심 새싹</div>
+        <div class="sub" id="rankSub">Lv.1 · 다음 진화까지 ★6</div>
+        <div class="xpbar"><div class="xpfill" id="xpfill"></div></div>
+        <div class="coins">💎 <span id="coinCount">0</span> <span style="font-weight:400;color:#8a83a3;font-size:11px">숨은 보물</span></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- HOME SCREEN -->
+  <section id="home" class="screen active">
+    <div class="mapCard">
+      <h2>🧭 보물지도 (6조각)</h2>
+      <div class="desc">단원을 클리어할 때마다 지도 조각이 열립니다. 6조각을 모두 열면 숨겨진 보물이 나타나요!</div>
+      <div class="mapGrid" id="mapGrid"></div>
+      <div class="treasureBadge" id="treasureBadge">열린 조각: <b id="openCount">0</b> / 6</div>
+      <div style="text-align:center;margin-top:12px;">
+        <button class="resetBtn" onclick="resetProgress()">🔄 처음부터 다시하기</button>
+      </div>
+    </div>
+
+    <div class="sectionTitle">📚 탐험할 단원을 선택하세요 <span style="font-size:11px;font-weight:400;color:#8a83a3">(화면 곳곳 반짝이는 ✦ 를 클릭해 숨은 과학 상식도 찾아보세요!)</span></div>
+    <div class="units" id="unitGrid"></div>
+  </section>
+
+  <!-- UNIT SCREEN -->
+  <section id="unit" class="screen">
+    <button class="backBtn" onclick="goHome()">← 지도로 돌아가기</button>
+    <div class="unitHead">
+      <div class="big" id="uHeadIcon">🔬</div>
+      <div><h2 id="uHeadName">단원</h2><div style="font-size:12px;color:#7d769a" id="uHeadTag"></div></div>
+    </div>
+    <div class="unitStory" id="uStory"></div>
+    <div class="sectionTitle" style="margin-top:6px;font-size:14px">🎯 단계별 도전 (낮은 단계는 쉽고 재미있게, 높은 단계는 깊이 있게!)</div>
+    <div class="stageList" id="stageList"></div>
+  </section>
+
+  <!-- QUIZ SCREEN -->
+  <section id="quiz" class="screen">
+    <button class="backBtn" onclick="quitQuiz()">← 단계 목록</button>
+    <div class="quizWrap">
+      <div class="qbar">
+        <div class="qprog"><div class="qprogFill" id="qprogFill"></div></div>
+        <div class="qcount" id="qcount">1 / 4</div>
+      </div>
+      <div class="qcard">
+        <div class="qtag" id="qtag"></div>
+        <div class="qfig" id="qfig"></div>
+        <div class="qtext" id="qtext"></div>
+        <div class="opts" id="opts"></div>
+        <div class="explain" id="explain"></div>
+        <button class="nextBtn" id="nextBtn" onclick="nextQuestion()">다음 →</button>
+      </div>
+      <div style="text-align:center;margin-top:12px;font-size:12px;color:#8a83a3">❤️ 남은 기회: <span id="lives">●●●</span></div>
+    </div>
+  </section>
+
+</div>
+
+<!-- OVERLAY MODAL -->
+<div class="overlay" id="overlay">
+  <div class="modal" id="modal"></div>
+</div>
+
+<footer class="copy">
+  <b>과학 탐험대 — 숨겨진 보물지도</b> &nbsp;|&nbsp; All Rights Reserved (무단 전재 및 재배포 금지)
+</footer>
+
+<script>
+/* =========================================================
+   과학 탐험대 — 데이터 (중학 과학1 핵심개념 반영)
+   각 단원: 스토리 + 3단계(기초/개념/심화) + 숨은 상식
+   ========================================================= */
+/* ===== 교과서 개념 삽화(원본 SVG) — 저작권 안전, 파일 내장 ===== */
+const FIG = {
+/* 생물 */
+cell:`<svg viewBox="0 0 320 150"><rect x="40" y="22" width="240" height="106" rx="18" fill="#eaf6ee" stroke="#7fcf9b" stroke-width="6"/><circle cx="120" cy="78" r="24" fill="#bcd4f5" stroke="#5a86c8" stroke-width="3"/><ellipse cx="205" cy="60" rx="20" ry="11" fill="#8fd6a2"/><ellipse cx="212" cy="98" rx="15" ry="9" fill="#cfeafd" stroke="#8ec7e6"/></svg>`,
+cellCompare:`<svg viewBox="0 0 320 150"><circle cx="85" cy="72" r="44" fill="#fde3ec" stroke="#e79ab5" stroke-width="4"/><circle cx="85" cy="72" r="14" fill="#bcd4f5"/><text x="85" y="130" font-size="12" text-anchor="middle" fill="#4b4763" font-weight="700">동물 세포</text><rect x="190" y="34" width="90" height="76" rx="10" fill="#eaf6ee" stroke="#3a8f5f" stroke-width="6"/><circle cx="235" cy="72" r="14" fill="#bcd4f5"/><text x="235" y="130" font-size="12" text-anchor="middle" fill="#4b4763" font-weight="700">식물 세포</text></svg>`,
+chloroplast:`<svg viewBox="0 0 320 150"><text x="55" y="58" font-size="34" text-anchor="middle">☀️</text><line x1="82" y1="58" x2="140" y2="76" stroke="#f6c344" stroke-width="4"/><line x1="82" y1="70" x2="140" y2="86" stroke="#f6c344" stroke-width="4"/><ellipse cx="195" cy="80" rx="55" ry="34" fill="#8fd6a2" stroke="#3a8f5f" stroke-width="4"/><ellipse cx="180" cy="72" rx="12" ry="7" fill="#4fae72"/><ellipse cx="210" cy="90" rx="12" ry="7" fill="#4fae72"/></svg>`,
+nucleus:`<svg viewBox="0 0 320 150"><circle cx="160" cy="72" r="56" fill="#eef3fb" stroke="#9db8dc" stroke-width="4"/><circle cx="160" cy="70" r="26" fill="#bcd4f5" stroke="#5a86c8" stroke-width="4"/><circle cx="152" cy="66" r="4" fill="#5a86c8"/><circle cx="167" cy="74" r="4" fill="#5a86c8"/></svg>`,
+levels:`<svg viewBox="0 0 320 150"><circle cx="28" cy="66" r="7" fill="#9ad3ff"/><text x="58" y="72" font-size="14" text-anchor="middle" fill="#b9770f">→</text><rect x="76" y="56" width="24" height="20" rx="4" fill="#7fc6f5"/><text x="118" y="72" font-size="14" text-anchor="middle" fill="#b9770f">→</text><text x="150" y="74" font-size="20" text-anchor="middle">❤️</text><text x="182" y="72" font-size="14" text-anchor="middle" fill="#b9770f">→</text><text x="215" y="75" font-size="20" text-anchor="middle">🫀</text><text x="248" y="72" font-size="14" text-anchor="middle" fill="#b9770f">→</text><text x="286" y="76" font-size="22" text-anchor="middle">🧑</text><text x="160" y="122" font-size="12" text-anchor="middle" fill="#4b4763" font-weight="700">작은 것 → 큰 몸</text></svg>`,
+mito:`<svg viewBox="0 0 320 150"><ellipse cx="140" cy="72" rx="72" ry="38" fill="#f7c9a8" stroke="#e08a4b" stroke-width="4"/><path d="M72 72 q18 -20 36 0 t36 0 t36 0" fill="none" stroke="#c96a2a" stroke-width="4"/><text x="252" y="66" font-size="34" text-anchor="middle">⚡</text></svg>`,
+tissue:`<svg viewBox="0 0 320 150"><g fill="#8fd6a2" stroke="#3a8f5f" stroke-width="2"><circle cx="70" cy="52" r="12"/><circle cx="70" cy="88" r="12"/><circle cx="100" cy="70" r="12"/><circle cx="40" cy="70" r="12"/></g><text x="150" y="76" font-size="18" fill="#b9770f" text-anchor="middle">→</text><rect x="185" y="42" width="100" height="56" rx="8" fill="#cdeecf" stroke="#3a8f5f" stroke-width="3"/></svg>`,
+membrane:`<svg viewBox="0 0 320 150"><rect x="150" y="24" width="14" height="102" rx="6" fill="#f6c344"/><text x="90" y="60" font-size="18" text-anchor="middle">🔵</text><text x="112" y="52" font-size="22" fill="#3a8f5f" text-anchor="middle">→</text><text x="112" y="102" font-size="22" fill="#c14b63" text-anchor="middle">←</text><text x="230" y="70" font-size="18" text-anchor="middle">🟢</text></svg>`,
+biodiv:`<svg viewBox="0 0 320 150"><text x="160" y="52" font-size="26" text-anchor="middle">🦁 🐢 🦋 🐟</text><text x="160" y="104" font-size="13" text-anchor="middle" fill="#4b4763" font-weight="700">생물 다양성</text></svg>`,
+variation:`<svg viewBox="0 0 320 150"><text x="160" y="58" font-size="30" text-anchor="middle">🐞 🐞 🐞 🐞</text><text x="160" y="104" font-size="12" text-anchor="middle" fill="#4b4763" font-weight="700">같은 종, 조금씩 다른 모습</text></svg>`,
+fungi:`<svg viewBox="0 0 320 150"><text x="160" y="74" font-size="46" text-anchor="middle">🍄</text><text x="160" y="118" font-size="12" text-anchor="middle" fill="#4b4763" font-weight="700">버섯·곰팡이</text></svg>`,
+classify:`<svg viewBox="0 0 320 150"><rect x="60" y="26" width="200" height="18" rx="3" fill="#c9b8f0"/><rect x="82" y="48" width="156" height="18" rx="3" fill="#bcd4f5"/><rect x="106" y="70" width="108" height="18" rx="3" fill="#9ad3ff"/><rect x="131" y="92" width="58" height="18" rx="3" fill="#7fc6a0"/><text x="160" y="126" font-size="11" text-anchor="middle" fill="#7d769a">큰 무리 → 작은 무리</text></svg>`,
+/* 열 */
+thermo:`<svg viewBox="0 0 320 150"><rect x="150" y="20" width="16" height="88" rx="8" fill="#e9e9ef"/><rect x="150" y="58" width="16" height="50" fill="#ef6a6a"/><circle cx="158" cy="116" r="16" fill="#ef6a6a"/><line x1="170" y1="35" x2="184" y2="35" stroke="#4b4763" stroke-width="2"/><line x1="170" y1="58" x2="184" y2="58" stroke="#4b4763" stroke-width="2"/><line x1="170" y1="82" x2="184" y2="82" stroke="#4b4763" stroke-width="2"/></svg>`,
+particleTemp:`<svg viewBox="0 0 320 150"><rect x="25" y="30" width="110" height="78" rx="10" fill="#e3f0ff" stroke="#9db8dc" stroke-width="3"/><g fill="#5a86c8"><circle cx="55" cy="58" r="6"/><circle cx="95" cy="55" r="6"/><circle cx="70" cy="90" r="6"/><circle cx="108" cy="90" r="6"/></g><text x="80" y="126" font-size="11" text-anchor="middle" fill="#4b4763">낮은 온도</text><rect x="185" y="30" width="110" height="78" rx="10" fill="#ffe6e0" stroke="#e79a8a" stroke-width="3"/><g fill="#e0674b"><circle cx="215" cy="55" r="6"/><circle cx="262" cy="68" r="6"/><circle cx="235" cy="95" r="6"/><circle cx="278" cy="92" r="6"/></g><g stroke="#e0674b" stroke-width="2"><line x1="215" y1="55" x2="203" y2="45"/><line x1="262" y1="68" x2="276" y2="60"/></g><text x="240" y="126" font-size="11" text-anchor="middle" fill="#4b4763">높은 온도</text></svg>`,
+heatFlow:`<svg viewBox="0 0 320 150"><rect x="30" y="42" width="80" height="58" rx="10" fill="#ffcabe" stroke="#e0674b" stroke-width="3"/><text x="70" y="76" font-size="13" text-anchor="middle" fill="#c14b30" font-weight="700">뜨거움</text><rect x="210" y="42" width="80" height="58" rx="10" fill="#cfe6ff" stroke="#5a86c8" stroke-width="3"/><text x="250" y="76" font-size="13" text-anchor="middle" fill="#2f5896" font-weight="700">차가움</text><text x="160" y="68" font-size="24" text-anchor="middle" fill="#b9770f">→</text><text x="160" y="90" font-size="11" text-anchor="middle" fill="#4b4763">열</text></svg>`,
+conduction:`<svg viewBox="0 0 320 150"><rect x="95" y="70" width="90" height="52" rx="6" fill="#cfe6ff" stroke="#5a86c8" stroke-width="3"/><text x="140" y="102" font-size="10" text-anchor="middle" fill="#2f5896">뜨거운 국</text><rect x="150" y="18" width="10" height="80" rx="5" fill="#b9c2cc" transform="rotate(20 155 58)"/><text x="215" y="46" font-size="20" text-anchor="middle">🔥</text></svg>`,
+convection:`<svg viewBox="0 0 320 150"><rect x="110" y="48" width="100" height="52" rx="6" fill="#cfe6ff" stroke="#5a86c8" stroke-width="3"/><path d="M160 92 C132 92 132 58 160 58" fill="none" stroke="#e0674b" stroke-width="3"/><path d="M160 58 C188 58 188 92 160 92" fill="none" stroke="#e0674b" stroke-width="3" stroke-dasharray="4 3"/><text x="140" y="42" font-size="14" text-anchor="middle" fill="#e0674b">↑</text><text x="180" y="42" font-size="14" text-anchor="middle" fill="#5a86c8">↓</text><text x="160" y="118" font-size="18" text-anchor="middle">🔥</text></svg>`,
+radiation:`<svg viewBox="0 0 320 150"><text x="55" y="82" font-size="40" text-anchor="middle">☀️</text><path d="M100 76 h120" stroke="#f6c344" stroke-width="3" stroke-dasharray="7 5"/><polygon points="220,70 234,76 220,82" fill="#f6c344"/><text x="270" y="86" font-size="34" text-anchor="middle">🌍</text></svg>`,
+equilibrium:`<svg viewBox="0 0 320 150"><rect x="40" y="48" width="70" height="55" rx="8" fill="#ffd9c9" stroke="#e0674b" stroke-width="3"/><text x="75" y="80" font-size="13" text-anchor="middle" fill="#c14b30" font-weight="700">40℃</text><text x="160" y="80" font-size="22" text-anchor="middle" fill="#b9770f">⇄</text><rect x="210" y="48" width="70" height="55" rx="8" fill="#cfe6ff" stroke="#5a86c8" stroke-width="3"/><text x="245" y="80" font-size="13" text-anchor="middle" fill="#2f5896" font-weight="700">20℃</text><text x="160" y="128" font-size="11" text-anchor="middle" fill="#4b4763">시간이 지나면 → 같은 온도</text></svg>`,
+specificHeat:`<svg viewBox="0 0 320 150"><text x="160" y="32" font-size="24" text-anchor="middle">☀️</text><rect x="30" y="66" width="120" height="44" rx="6" fill="#9ad3ff"/><text x="90" y="93" font-size="13" text-anchor="middle" fill="#2f5896" font-weight="700">물</text><rect x="170" y="66" width="120" height="44" rx="6" fill="#f2d29a"/><text x="230" y="93" font-size="13" text-anchor="middle" fill="#8a6212" font-weight="700">모래</text><text x="160" y="132" font-size="11" text-anchor="middle" fill="#7d769a">물은 천천히 데워지고 천천히 식음</text></svg>`,
+expansion:`<svg viewBox="0 0 320 150"><rect x="40" y="42" width="140" height="20" rx="4" fill="#b9c2cc"/><text x="110" y="36" font-size="10" text-anchor="middle" fill="#4b4763">차가울 때</text><rect x="40" y="82" width="205" height="20" rx="4" fill="#e0674b"/><text x="255" y="98" font-size="18" text-anchor="middle">🔥</text><text x="140" y="126" font-size="11" text-anchor="middle" fill="#4b4763">온도↑ → 길이가 늘어남</text></svg>`,
+rail:`<svg viewBox="0 0 320 150"><rect x="30" y="58" width="120" height="24" fill="#9aa4ae"/><rect x="170" y="58" width="120" height="24" fill="#9aa4ae"/><rect x="150" y="58" width="20" height="24" fill="#fce9c9"/><text x="160" y="48" font-size="11" text-anchor="middle" fill="#b9770f">틈(이음새)</text></svg>`,
+/* 상태 변화 */
+threeStates:`<svg viewBox="0 0 320 150"><rect x="18" y="28" width="82" height="72" rx="8" fill="#e9e4f7" stroke="#9c86d6" stroke-width="2"/><g fill="#7a5fd0"><circle cx="38" cy="48" r="6"/><circle cx="59" cy="48" r="6"/><circle cx="80" cy="48" r="6"/><circle cx="38" cy="70" r="6"/><circle cx="59" cy="70" r="6"/><circle cx="80" cy="70" r="6"/></g><text x="59" y="116" font-size="11" text-anchor="middle" fill="#4b4763">고체</text><rect x="119" y="28" width="82" height="72" rx="8" fill="#e0eefb" stroke="#5a86c8" stroke-width="2"/><g fill="#3f78c0"><circle cx="140" cy="52" r="6"/><circle cx="165" cy="46" r="6"/><circle cx="185" cy="60" r="6"/><circle cx="150" cy="80" r="6"/><circle cx="180" cy="84" r="6"/></g><text x="160" y="116" font-size="11" text-anchor="middle" fill="#4b4763">액체</text><rect x="220" y="28" width="82" height="72" rx="8" fill="#eafaf0" stroke="#5cc08a" stroke-width="2"/><g fill="#2f9e69"><circle cx="240" cy="44" r="6"/><circle cx="286" cy="54" r="6"/><circle cx="256" cy="84" r="6"/></g><text x="261" y="116" font-size="11" text-anchor="middle" fill="#4b4763">기체</text></svg>`,
+solidState:`<svg viewBox="0 0 320 150"><rect x="108" y="22" width="104" height="90" rx="10" fill="#e9e4f7" stroke="#9c86d6" stroke-width="3"/><g fill="#7a5fd0"><circle cx="133" cy="46" r="7"/><circle cx="160" cy="46" r="7"/><circle cx="187" cy="46" r="7"/><circle cx="133" cy="70" r="7"/><circle cx="160" cy="70" r="7"/><circle cx="187" cy="70" r="7"/><circle cx="133" cy="94" r="7"/><circle cx="160" cy="94" r="7"/><circle cx="187" cy="94" r="7"/></g></svg>`,
+melting:`<svg viewBox="0 0 320 150"><text x="72" y="80" font-size="40" text-anchor="middle">🧊</text><text x="160" y="74" font-size="24" text-anchor="middle" fill="#b9770f">→</text><text x="248" y="84" font-size="38" text-anchor="middle">💧</text></svg>`,
+vaporize:`<svg viewBox="0 0 320 150"><text x="82" y="82" font-size="34" text-anchor="middle">💧</text><text x="160" y="74" font-size="24" fill="#b9770f" text-anchor="middle">→</text><text x="242" y="82" font-size="36" text-anchor="middle">☁️</text></svg>`,
+liquefy:`<svg viewBox="0 0 320 150"><rect x="120" y="26" width="80" height="88" rx="8" fill="#d6ecff" stroke="#7fb0e0" stroke-width="3"/><text x="160" y="82" font-size="24" text-anchor="middle">🥤</text><g fill="#5a9fe0"><circle cx="128" cy="52" r="4"/><circle cx="128" cy="74" r="4"/><circle cx="128" cy="94" r="4"/><circle cx="196" cy="58" r="4"/><circle cx="196" cy="84" r="4"/></g></svg>`,
+sublimation:`<svg viewBox="0 0 320 150"><rect x="118" y="66" width="84" height="44" rx="8" fill="#dfeaf5" stroke="#9db8dc" stroke-width="3"/><text x="160" y="93" font-size="10" text-anchor="middle" fill="#4b4763">드라이아이스</text><text x="138" y="52" font-size="20" text-anchor="middle">💨</text><text x="185" y="42" font-size="22" text-anchor="middle">💨</text></svg>`,
+stateCycle:`<svg viewBox="0 0 320 150"><text x="55" y="46" font-size="13" text-anchor="middle" fill="#7a5fd0" font-weight="700">고체</text><text x="265" y="46" font-size="13" text-anchor="middle" fill="#3f78c0" font-weight="700">액체</text><text x="160" y="128" font-size="13" text-anchor="middle" fill="#2f9e69" font-weight="700">기체</text><text x="160" y="40" font-size="10" text-anchor="middle" fill="#c14b30">융해 → / ← 응고</text><text x="230" y="92" font-size="9" text-anchor="middle" fill="#4b4763">기화 ↓ / ↑ 액화</text><text x="92" y="94" font-size="9" text-anchor="middle" fill="#4b4763">승화</text></svg>`,
+freezing:`<svg viewBox="0 0 320 150"><text x="72" y="82" font-size="36" text-anchor="middle">💧</text><text x="160" y="74" font-size="24" fill="#b9770f" text-anchor="middle">→</text><text x="248" y="82" font-size="40" text-anchor="middle">🧊</text></svg>`,
+heatingCurve:`<svg viewBox="0 0 320 150"><line x1="42" y1="112" x2="292" y2="112" stroke="#9aa4ae" stroke-width="2"/><line x1="42" y1="112" x2="42" y2="24" stroke="#9aa4ae" stroke-width="2"/><polyline points="48,104 90,68 152,68 212,34 278,28" fill="none" stroke="#e0674b" stroke-width="3"/><text x="121" y="60" font-size="10" fill="#c14b30" text-anchor="middle">온도 일정 구간</text><text x="30" y="30" font-size="10" fill="#4b4763">온도</text><text x="288" y="128" font-size="10" fill="#4b4763" text-anchor="end">시간</text></svg>`,
+evapCool:`<svg viewBox="0 0 320 150"><text x="160" y="52" font-size="30" text-anchor="middle">💦</text><text x="120" y="76" font-size="14" text-anchor="middle" fill="#5a9fe0">↑</text><text x="160" y="80" font-size="14" text-anchor="middle" fill="#5a9fe0">↑</text><text x="202" y="82" font-size="16" text-anchor="middle" fill="#5a9fe0">↑</text><text x="160" y="122" font-size="28" text-anchor="middle">❄️</text></svg>`,
+/* 힘 */
+forceShape:`<svg viewBox="0 0 320 150"><text x="65" y="86" font-size="30" text-anchor="middle">👉</text><circle cx="150" cy="76" r="24" fill="#ffd27f" stroke="#e0a94b" stroke-width="3"/><text x="205" y="72" font-size="20" fill="#b9770f" text-anchor="middle">→</text><circle cx="258" cy="76" r="24" fill="#ffd27f" stroke="#e0a94b" stroke-width="3"/></svg>`,
+springScale:`<svg viewBox="0 0 320 150"><rect x="140" y="16" width="40" height="60" rx="6" fill="#e9e4f7" stroke="#9c86d6" stroke-width="2"/><circle cx="160" cy="46" r="15" fill="#fff" stroke="#9c86d6"/><line x1="160" y1="46" x2="167" y2="39" stroke="#7a5fd0" stroke-width="2"/><path d="M160 76 q-8 8 0 16 q8 8 0 16 q-8 8 0 12" fill="none" stroke="#7a5fd0" stroke-width="3"/><rect x="148" y="118" width="24" height="18" rx="3" fill="#ffd27f" stroke="#e0a94b"/></svg>`,
+forceElements:`<svg viewBox="0 0 320 150"><circle cx="60" cy="76" r="7" fill="#e0674b"/><line x1="60" y1="76" x2="236" y2="76" stroke="#7a5fd0" stroke-width="7"/><polygon points="236,62 270,76 236,90" fill="#7a5fd0"/></svg>`,
+gravity:`<svg viewBox="0 0 320 150"><text x="160" y="40" font-size="24" text-anchor="middle">🍎</text><line x1="160" y1="48" x2="160" y2="92" stroke="#e0674b" stroke-width="4"/><polygon points="152,90 160,108 168,90" fill="#e0674b"/><path d="M118 122 A50 30 0 0 1 202 122 Z" fill="#8fd6a2" stroke="#3a8f5f" stroke-width="2"/></svg>`,
+massWeight:`<svg viewBox="0 0 320 150"><text x="80" y="46" font-size="30" text-anchor="middle">🌍</text><line x1="80" y1="58" x2="80" y2="106" stroke="#e0674b" stroke-width="6"/><polygon points="71,102 80,120 89,102" fill="#e0674b"/><text x="80" y="140" font-size="11" text-anchor="middle" fill="#4b4763">지구</text><text x="240" y="46" font-size="26" text-anchor="middle">🌕</text><line x1="240" y1="56" x2="240" y2="76" stroke="#e0674b" stroke-width="6"/><polygon points="231,74 240,90 249,74" fill="#e0674b"/><text x="240" y="140" font-size="11" text-anchor="middle" fill="#4b4763">달</text></svg>`,
+elastic:`<svg viewBox="0 0 320 150"><path d="M55 66 h20 q10 -18 20 0 q10 18 20 0 q10 -18 20 0 q10 18 20 0 h20" fill="none" stroke="#7a5fd0" stroke-width="3"/><line x1="200" y1="66" x2="242" y2="66" stroke="#4b4763" stroke-width="3"/><polygon points="242,58 264,66 242,74" fill="#4b4763"/><text x="252" y="50" font-size="10" text-anchor="middle" fill="#4b4763">당김</text><line x1="120" y1="98" x2="78" y2="98" stroke="#e0674b" stroke-width="3"/><polygon points="78,90 56,98 78,106" fill="#e0674b"/></svg>`,
+friction:`<svg viewBox="0 0 320 150"><line x1="40" y1="98" x2="284" y2="98" stroke="#9aa4ae" stroke-width="3" stroke-dasharray="4 3"/><rect x="112" y="60" width="70" height="34" rx="4" fill="#ffd27f" stroke="#e0a94b" stroke-width="2"/><line x1="182" y1="77" x2="232" y2="77" stroke="#3a8f5f" stroke-width="3"/><polygon points="232,69 254,77 232,85" fill="#3a8f5f"/><text x="226" y="62" font-size="9" fill="#3a8f5f" text-anchor="middle">운동</text><line x1="112" y1="88" x2="72" y2="88" stroke="#e0674b" stroke-width="3"/><polygon points="72,80 52,88 72,96" fill="#e0674b"/></svg>`,
+buoyancy:`<svg viewBox="0 0 320 150"><rect x="40" y="58" width="240" height="66" rx="6" fill="#cfe6ff"/><rect x="130" y="72" width="60" height="34" rx="4" fill="#ffd27f" stroke="#e0a94b" stroke-width="2"/><line x1="160" y1="72" x2="160" y2="42" stroke="#3a8f5f" stroke-width="4"/><polygon points="152,45 160,28 168,45" fill="#3a8f5f"/></svg>`,
+/* 기체 */
+diffusion:`<svg viewBox="0 0 320 150"><text x="58" y="92" font-size="30" text-anchor="middle">🌸</text><g fill="#d78ac0"><circle cx="110" cy="70" r="4"/><circle cx="140" cy="54" r="4"/><circle cx="170" cy="80" r="4"/><circle cx="200" cy="50" r="4"/><circle cx="232" cy="74" r="4"/><circle cx="262" cy="60" r="4"/></g></svg>`,
+evaporation:`<svg viewBox="0 0 320 150"><line x1="30" y1="42" x2="290" y2="42" stroke="#9aa4ae" stroke-width="2"/><text x="120" y="82" font-size="30" text-anchor="middle">👕</text><text x="205" y="82" font-size="30" text-anchor="middle">🧦</text><g fill="#7fb0e0"><circle cx="150" cy="54" r="3"/><circle cx="176" cy="50" r="3"/><circle cx="222" cy="54" r="3"/></g></svg>`,
+gasMotion:`<svg viewBox="0 0 320 150"><rect x="90" y="22" width="140" height="92" rx="10" fill="#eafaf0" stroke="#5cc08a" stroke-width="3"/><g fill="#2f9e69"><circle cx="120" cy="48" r="6"/><circle cx="190" cy="44" r="6"/><circle cx="150" cy="78" r="6"/><circle cx="205" cy="94" r="6"/><circle cx="115" cy="96" r="6"/></g><g stroke="#2f9e69" stroke-width="2"><line x1="120" y1="48" x2="105" y2="36"/><line x1="190" y1="44" x2="205" y2="34"/><line x1="150" y1="78" x2="150" y2="60"/></g></svg>`,
+gasPressure:`<svg viewBox="0 0 320 150"><rect x="100" y="22" width="120" height="92" rx="8" fill="#eeeafb" stroke="#7a5fd0" stroke-width="3"/><g fill="#7a5fd0"><circle cx="140" cy="52" r="6"/><circle cx="180" cy="78" r="6"/><circle cx="155" cy="98" r="6"/></g><g stroke="#e0674b" stroke-width="2"><line x1="140" y1="52" x2="104" y2="42"/><line x1="180" y1="78" x2="216" y2="88"/></g></svg>`,
+boyle:`<svg viewBox="0 0 320 150"><rect x="40" y="38" width="86" height="70" rx="4" fill="#dfeafd" stroke="#5a86c8" stroke-width="3"/><g fill="#3f78c0"><circle cx="60" cy="58" r="5"/><circle cx="95" cy="68" r="5"/><circle cx="70" cy="92" r="5"/><circle cx="108" cy="54" r="5"/></g><text x="83" y="126" font-size="10" text-anchor="middle" fill="#4b4763">압력 작음</text><text x="160" y="76" font-size="18" fill="#b9770f" text-anchor="middle">→</text><rect x="200" y="58" width="60" height="50" rx="4" fill="#c9dcf5" stroke="#5a86c8" stroke-width="3"/><g fill="#3f78c0"><circle cx="218" cy="76" r="5"/><circle cx="245" cy="70" r="5"/><circle cx="230" cy="96" r="5"/></g><text x="230" y="126" font-size="10" text-anchor="middle" fill="#4b4763">압력 큼</text></svg>`,
+snackBag:`<svg viewBox="0 0 320 150"><polygon points="28,118 88,52 148,118" fill="#cbe0cf" stroke="#3a8f5f" stroke-width="2"/><text x="70" y="112" font-size="10" text-anchor="middle" fill="#2c6b45">높은 산</text><ellipse cx="222" cy="72" rx="46" ry="36" fill="#ffe08a" stroke="#e0a94b" stroke-width="3"/><text x="222" y="76" font-size="11" text-anchor="middle" fill="#8a6212">과자봉지</text></svg>`,
+charles:`<svg viewBox="0 0 320 150"><circle cx="95" cy="62" r="24" fill="#ffbcc4" stroke="#e0748a" stroke-width="2"/><text x="95" y="106" font-size="10" text-anchor="middle" fill="#4b4763">차가움</text><text x="160" y="68" font-size="18" fill="#b9770f" text-anchor="middle">→</text><circle cx="235" cy="60" r="36" fill="#ff9aa6" stroke="#e0748a" stroke-width="2"/><text x="235" y="112" font-size="10" text-anchor="middle" fill="#4b4763">뜨거움</text></svg>`,
+pingpong:`<svg viewBox="0 0 320 150"><rect x="90" y="70" width="140" height="52" rx="6" fill="#ffd9c9" stroke="#e0674b" stroke-width="3"/><text x="160" y="103" font-size="10" text-anchor="middle" fill="#c14b30">뜨거운 물</text><circle cx="160" cy="58" r="22" fill="#ffffff" stroke="#e0a94b" stroke-width="2"/></svg>`,
+/* 태양계 */
+sun:`<svg viewBox="0 0 320 150"><text x="160" y="92" font-size="58" text-anchor="middle">☀️</text></svg>`,
+moonOrbit:`<svg viewBox="0 0 320 150"><ellipse cx="160" cy="70" rx="92" ry="48" fill="none" stroke="#9db8dc" stroke-width="2" stroke-dasharray="5 5"/><text x="160" y="82" font-size="30" text-anchor="middle">🌍</text><text x="252" y="80" font-size="22" text-anchor="middle">🌕</text></svg>`,
+planets:`<svg viewBox="0 0 320 150"><circle cx="30" cy="66" r="7" fill="#c99a6a"/><circle cx="60" cy="66" r="10" fill="#e6c288"/><circle cx="95" cy="66" r="11" fill="#5a9fe0"/><circle cx="128" cy="66" r="9" fill="#e0674b"/><circle cx="175" cy="66" r="19" fill="#d9a066"/><circle cx="223" cy="66" r="16" fill="#e6cf9a"/><circle cx="262" cy="66" r="12" fill="#8fd6e0"/><circle cx="296" cy="72" r="11" fill="#5a86e0"/></svg>`,
+moonPhases:`<svg viewBox="0 0 320 150"><text x="160" y="86" font-size="34" text-anchor="middle">🌑 🌒 🌓 🌔 🌕</text></svg>`,
+rotation:`<svg viewBox="0 0 320 150"><circle cx="160" cy="70" r="42" fill="#7fc6f5" stroke="#3a8f5f" stroke-width="2"/><path d="M160 28 A42 42 0 0 1 160 112 Z" fill="#2f3b57" opacity="0.5"/><path d="M150 20 a12 8 0 1 1 12 4" fill="none" stroke="#b9770f" stroke-width="3"/><polygon points="160,20 172,22 163,32" fill="#b9770f"/><text x="92" y="72" font-size="10" fill="#4b4763">낮</text><text x="222" y="72" font-size="10" fill="#ffffff">밤</text></svg>`,
+revolution:`<svg viewBox="0 0 320 150"><text x="160" y="78" font-size="28" text-anchor="middle">☀️</text><ellipse cx="160" cy="70" rx="112" ry="50" fill="none" stroke="#f6c344" stroke-width="2" stroke-dasharray="5 5"/><text x="272" y="82" font-size="22" text-anchor="middle">🌍</text></svg>`,
+seasons:`<svg viewBox="0 0 320 150"><text x="160" y="72" font-size="24" text-anchor="middle">☀️</text><circle cx="55" cy="62" r="20" fill="#7fc6f5"/><line x1="45" y1="48" x2="65" y2="78" stroke="#e0674b" stroke-width="3"/><text x="55" y="102" font-size="10" text-anchor="middle" fill="#4b4763">여름</text><circle cx="265" cy="62" r="20" fill="#7fc6f5"/><line x1="255" y1="48" x2="275" y2="78" stroke="#e0674b" stroke-width="3"/><text x="265" y="102" font-size="10" text-anchor="middle" fill="#4b4763">겨울</text></svg>`,
+planetTypes:`<svg viewBox="0 0 320 150"><circle cx="80" cy="72" r="20" fill="#c99a6a" stroke="#8a6212" stroke-width="2"/><ellipse cx="228" cy="72" rx="54" ry="13" fill="none" stroke="#c9a06a" stroke-width="2"/><circle cx="228" cy="72" r="38" fill="#e6cf9a" stroke="#d9a066" stroke-width="2"/></svg>`,
+sunspot:`<svg viewBox="0 0 320 150"><circle cx="160" cy="70" r="45" fill="#f6a83a" stroke="#e0862a" stroke-width="3"/><circle cx="145" cy="62" r="9" fill="#7a4a12"/><circle cx="178" cy="84" r="6" fill="#7a4a12"/></svg>`,
+aurora:`<svg viewBox="0 0 320 150"><path d="M40 88 Q90 30 140 78 T262 68" fill="none" stroke="#5cc08a" stroke-width="6" opacity="0.7"/><path d="M40 100 Q90 46 140 90 T262 80" fill="none" stroke="#7a5fd0" stroke-width="5" opacity="0.6"/><text x="270" y="96" font-size="26" text-anchor="middle">🌍</text></svg>`
+};
+/* 문제 → 삽화 매핑 [단원][스테이지][문항] */
+const QFIG = {
+  bio:[["cell","cellCompare","chloroplast","nucleus"],["levels","mito","tissue","membrane"],["biodiv","variation","fungi","classify"]],
+  heat:[["thermo","particleTemp","heatFlow","conduction"],["convection","radiation","equilibrium","heatFlow"],["specificHeat","specificHeat","expansion","rail"]],
+  state:[["threeStates","solidState","melting","vaporize"],["liquefy","sublimation","stateCycle","freezing"],["stateCycle","heatingCurve","evapCool","stateCycle"]],
+  force:[["forceShape","springScale","forceElements","gravity"],["massWeight","massWeight","elastic","elastic"],["friction","friction","buoyancy","buoyancy"]],
+  gas:[["diffusion","evaporation","gasMotion","diffusion"],["evaporation","gasPressure","boyle","gasMotion"],["boyle","snackBag","charles","pingpong"]],
+  solar:[["sun","moonOrbit","planets","moonPhases"],["rotation","revolution","rotation","seasons"],["planetTypes","planetTypes","sunspot","aurora"]]
+};
+
+const UNITS = [
+  {
+    id:"bio", icon:"🔬", color:"#3ecf8e", name:"생물의 구성과 다양성",
+    tag:"세포 · 생물의 구성 단계 · 다양성",
+    piece:"🌿",
+    story:"작은 세포 하나에서 거대한 생명의 세계가 시작됩니다. 현미경 속 숨겨진 세계를 탐험하며, 생명을 이루는 벽돌 '세포'부터 지구를 가득 채운 생물 다양성까지 그 비밀을 풀어보세요!",
+    stages:[
+      { title:"세포의 세계로", diff:"easy",
+        lesson:["<span class='k'>세포</span>는 생물체를 이루는 <b>기본 단위</b>예요.",
+                "<span class='k'>핵</span>: 유전정보를 담고 세포를 조절 · <span class='k'>세포막</span>: 물질의 출입 조절",
+                "<span class='k'>엽록체</span>(초록 알갱이): 광합성 · <span class='k'>미토콘드리아</span>: 에너지 생산",
+                "식물 세포에만 있는 것: <b>세포벽, 엽록체, 큰 액포</b>"],
+        qs:[
+          {q:"모든 생물체를 이루는 가장 기본이 되는 단위는?",o:["세포","기관","분자","개체"],a:0,e:"<b>세포</b>는 생명체를 이루는 기본 단위예요. 우리 몸은 약 37조 개의 세포로 이루어져 있어요!"},
+          {q:"식물 세포에는 있지만 동물 세포에는 <u>없는</u> 것은?",o:["핵","세포막","세포벽","미토콘드리아"],a:2,e:"<b>세포벽</b>은 식물 세포를 단단하게 지지해요. 세포벽·엽록체·큰 액포는 식물 세포에만 있어요."},
+          {q:"광합성이 일어나는 초록색 알갱이는?",o:["핵","엽록체","액포","세포막"],a:1,e:"<b>엽록체</b>에서 빛을 이용해 양분을 만드는 광합성이 일어나요. 그래서 식물이 초록색이죠!"},
+          {q:"유전 정보를 담고 세포의 생명 활동을 조절하는 곳은?",o:["세포막","핵","세포질","세포벽"],a:1,e:"<b>핵</b>은 세포의 사령탑! 유전 정보(DNA)를 보관하고 세포를 조절해요."}
+        ]},
+      { title:"작은 것에서 큰 몸으로", diff:"mid",
+        lesson:["동물의 구성 단계: <b>세포 → 조직 → 기관 → 기관계 → 개체</b>",
+                "<span class='k'>조직</span>: 모양·기능이 비슷한 세포의 모임",
+                "<span class='k'>기관</span>: 여러 조직이 모여 일정한 기능 (예: 심장, 위)",
+                "<span class='k'>미토콘드리아</span>는 세포 호흡으로 <b>에너지</b>를 만들어요."],
+        qs:[
+          {q:"동물의 구성 단계를 순서대로 옳게 나열한 것은?",o:["세포→기관→조직→개체","세포→조직→기관→기관계→개체","조직→세포→기관→개체","기관→조직→세포→개체"],a:1,e:"작은 것부터: <b>세포 → 조직 → 기관 → 기관계 → 개체</b> 순으로 커져요."},
+          {q:"세포 호흡으로 에너지를 만들어 생명 활동에 쓰는 세포 소기관은?",o:["엽록체","미토콘드리아","액포","핵"],a:1,e:"<b>미토콘드리아</b>는 세포의 '발전소'! 양분을 분해해 에너지를 얻어요."},
+          {q:"모양과 기능이 비슷한 세포가 모인 단계는?",o:["세포","조직","기관","기관계"],a:1,e:"비슷한 세포들이 모이면 <b>조직</b>이 돼요. 조직이 모이면 기관이 되고요."},
+          {q:"세포막이 하는 일로 옳은 것은?",o:["광합성을 한다","물질의 출입을 조절한다","유전정보를 저장한다","에너지를 만든다"],a:1,e:"<b>세포막</b>은 세포 안팎으로 드나드는 물질을 조절하는 문지기예요."}
+        ]},
+      { title:"생명의 다양성 지도", diff:"hard",
+        lesson:["<span class='k'>생물 다양성</span> 세 가지: <b>종 다양성, 유전적 다양성, 생태계 다양성</b>",
+                "<span class='k'>변이</span>: 같은 종 안에서도 개체마다 형질이 조금씩 다른 것",
+                "생물 5계: <b>원핵생물계·원생생물계·균계·식물계·동물계</b> (버섯·곰팡이 = 균계)",
+                "분류 단계(작은→큰): <b>종 → 속 → 과 → 목 → 강 → 문 → 계</b>"],
+        qs:[
+          {q:"생물 다양성의 세 가지 의미에 <u>해당하지 않는</u> 것은?",o:["종 다양성","유전적 다양성","생태계 다양성","개체 다양성"],a:3,e:"생물 다양성 = <b>종·유전적·생태계</b> 다양성. 다양할수록 환경 변화에 강한 생태계가 돼요."},
+          {q:"같은 종 안에서도 개체마다 생김새·형질이 조금씩 다른 현상은?",o:["변이","진화","적응","분류"],a:0,e:"<b>변이</b> 덕분에 환경이 바뀌어도 살아남는 개체가 생겨 생물이 다양해져요."},
+          {q:"생물을 5개의 계로 나눌 때, 버섯과 곰팡이가 속하는 계는?",o:["식물계","동물계","균계","원핵생물계"],a:2,e:"버섯·곰팡이는 <b>균계</b>. 광합성을 못 하고 다른 생물이나 물질을 분해해 양분을 얻어요."},
+          {q:"생물 분류 단계 중 가장 작은(기본) 단위는?",o:["계","문","속","종"],a:3,e:"가장 기본 단위는 <b>종</b>이에요. 종→속→과→목→강→문→계 순으로 커집니다."}
+        ]},
+    ],
+    eggs:[
+      {t:"미토콘드리아의 비밀",x:"미토콘드리아는 아주 먼 옛날 독립된 세균이었다가 다른 세포 안으로 들어가 함께 살게 되었다는 가설(세포내공생설)이 있어요!"},
+      {t:"세포의 수",x:"사람 몸은 약 37조 개의 세포로 이루어져 있어요. 매초 수백만 개가 새로 만들어진답니다!"}
+    ]
+  },
+
+  {
+    id:"heat", icon:"🔥", color:"#ff8a4b", name:"열",
+    tag:"온도 · 열의 이동 · 비열 · 열팽창",
+    piece:"🌋",
+    story:"뜨거운 것과 차가운 것 사이에서 눈에 보이지 않는 '열'이 움직입니다. 입자들의 춤을 관찰하고, 열이 어떻게 이동하는지 그 흐름을 따라가면 숨겨진 화산섬의 비밀이 열립니다!",
+    stages:[
+      { title:"뜨거움과 입자의 춤", diff:"easy",
+        lesson:["<span class='k'>온도</span>: 물체의 차갑고 뜨거운 정도를 숫자로 나타낸 것",
+                "온도가 <b>높을수록</b> 물질을 이루는 입자의 운동이 <b>활발</b>해요.",
+                "<span class='k'>열</span>: 온도가 <b>높은 곳 → 낮은 곳</b>으로 이동하는 에너지",
+                "<span class='k'>전도</span>: 고체에서 입자의 충돌로 열이 전달 (예: 숟가락)"],
+        qs:[
+          {q:"물체의 차갑고 뜨거운 정도를 숫자로 나타낸 것은?",o:["온도","열","무게","부피"],a:0,e:"<b>온도</b>는 물체의 뜨겁고 찬 정도예요. 단위는 ℃(섭씨도)를 써요."},
+          {q:"온도가 높아지면 물질을 이루는 입자의 운동은 어떻게 될까?",o:["느려진다","멈춘다","활발해진다","변하지 않는다"],a:2,e:"온도가 높을수록 입자가 <b>더 활발</b>하게 움직여요. 온도는 입자 운동의 세기와 관련 있어요!"},
+          {q:"열은 온도가 어떻게 이동할까?",o:["낮은 곳 → 높은 곳","높은 곳 → 낮은 곳","항상 위로만","이동하지 않는다"],a:1,e:"<b>열은 높은 곳 → 낮은 곳</b>으로 이동해요. 뜨거운 커피가 식는 이유죠."},
+          {q:"뜨거운 국에 담근 숟가락 손잡이까지 뜨거워지는, 고체에서 열이 전달되는 방법은?",o:["대류","복사","전도","증발"],a:2,e:"<b>전도</b>는 고체에서 이웃한 입자끼리 충돌하며 열이 옮겨가는 방법이에요."}
+        ]},
+      { title:"열의 이동, 그 세 가지 길", diff:"mid",
+        lesson:["<span class='k'>대류</span>: 액체·기체에서 입자가 <b>직접 이동</b>하며 열 전달 (냄비 물, 에어컨)",
+                "<span class='k'>복사</span>: 물질(매질) 없이 <b>직접</b> 전달 (태양열, 난로 앞 따뜻함)",
+                "<span class='k'>열평형</span>: 두 물체의 온도가 같아진 상태 (열 이동 멈춤)",
+                "열은 고온→저온으로 이동하다가 온도가 같아지면 멈춰요."],
+        qs:[
+          {q:"냄비 속 물이나 방 안의 공기처럼, 입자가 직접 이동하며 열을 나르는 방법은?",o:["전도","대류","복사","단열"],a:1,e:"<b>대류</b>는 데워진 입자가 위로 올라가고 찬 입자가 내려오며 열이 도는 방법이에요."},
+          {q:"태양의 열이 텅 빈 우주 공간을 지나 지구까지 오는 방법은?",o:["전도","대류","복사","확산"],a:2,e:"<b>복사</b>는 중간 물질 없이도 열이 직접 전달돼요. 그래서 우주를 지나 햇빛이 오죠!"},
+          {q:"온도가 다른 두 물체가 접촉한 뒤 시간이 지나 온도가 같아진 상태는?",o:["열팽창","열평형","단열","비열"],a:1,e:"<b>열평형</b> 상태! 이때는 열 이동이 멈춰요. 체온계로 열을 잴 수 있는 원리랍니다."},
+          {q:"차가운 물에 뜨거운 쇠구슬을 넣었을 때 열의 이동으로 옳은 것은?",o:["물 → 쇠구슬","쇠구슬 → 물","이동 없음","양쪽으로 동시에"],a:1,e:"열은 뜨거운 <b>쇠구슬 → 차가운 물</b>로 이동해요. 온도가 같아지면 멈춥니다."}
+        ]},
+      { title:"물의 마법과 늘어나는 물질", diff:"hard",
+        lesson:["<span class='k'>비열</span>: 어떤 물질 1kg의 온도를 1℃ 높이는 데 필요한 열량",
+                "물은 비열이 <b>커서</b> 잘 데워지지 않고 잘 식지 않아요 (해안가 온도차 작음).",
+                "<span class='k'>열팽창</span>: 온도가 오르면 <b>입자 사이 거리</b>가 멀어져 부피 증가",
+                "다리·철로의 이음새 틈, 바이메탈은 열팽창을 이용/대비한 예."],
+        qs:[
+          {q:"어떤 물질 1kg의 온도를 1℃ 높이는 데 필요한 열량을 무엇이라 할까?",o:["온도","비열","열량","열팽창"],a:1,e:"<b>비열</b>이 클수록 온도를 올리기 어려워요. 물은 비열이 커서 잘 안 데워지고 잘 안 식어요."},
+          {q:"바닷가가 사막보다 낮과 밤의 온도차가 작은 까닭과 관련 있는 것은?",o:["물의 비열이 크기 때문","물의 비열이 작기 때문","물이 복사를 안 해서","물이 전도가 안 돼서"],a:0,e:"물은 <b>비열이 커서</b> 온도가 천천히 변해요. 그래서 바닷가는 기온 변화가 완만하죠."},
+          {q:"온도가 높아질 때 물질의 부피가 커지는 현상은?",o:["열평형","열팽창","응고","비열"],a:1,e:"<b>열팽창</b>! 입자 사이 거리가 멀어져 부피가 늘어나요. 에펠탑도 여름엔 약 15cm 더 커져요!"},
+          {q:"기차 철로 이음새에 틈을 두는 까닭으로 옳은 것은?",o:["소리를 줄이려고","열팽창으로 늘어나는 것에 대비하려고","비가 빠지게 하려고","전기가 통하게 하려고"],a:1,e:"여름철 철로가 <b>열팽창</b>으로 늘어나 휘는 것을 막으려고 미리 틈을 둬요."}
+        ]},
+    ],
+    eggs:[
+      {t:"늘어나는 에펠탑",x:"에펠탑은 여름철 열팽창 때문에 겨울보다 키가 약 15cm 더 커져요! 쇠도 더우면 늘어나거든요."},
+      {t:"보온병의 원리",x:"보온병은 벽 사이를 진공으로 만들어 전도와 대류를 막고, 안쪽 은도금으로 복사까지 막아 온도를 오래 유지해요."}
+    ]
+  },
+
+  {
+    id:"state", icon:"💧", color:"#4aa8ff", name:"물질의 상태와 변화",
+    tag:"고체·액체·기체 · 상태 변화 · 열에너지",
+    piece:"🌊",
+    story:"얼음, 물, 수증기 — 겉모습은 달라도 모두 같은 물이에요! 눈에 보이지 않는 입자들의 배열이 바뀌며 물질이 변신합니다. 상태 변화의 규칙을 풀면 바다 아래 보물이 드러나요!",
+    stages:[
+      { title:"세 가지 얼굴", diff:"easy",
+        lesson:["물질의 세 가지 상태: <b>고체 · 액체 · 기체</b>",
+                "<span class='k'>고체</span>: 입자가 규칙적·촘촘 → 모양·부피 일정",
+                "<span class='k'>융해</span>: 고체→액체 (얼음이 녹음)",
+                "<span class='k'>기화</span>: 액체→기체 (물이 끓어 수증기)"],
+        qs:[
+          {q:"물질의 세 가지 상태가 <u>아닌</u> 것은?",o:["고체","액체","기체","전기"],a:3,e:"물질의 상태는 <b>고체·액체·기체</b> 세 가지예요. 전기는 상태가 아니에요!"},
+          {q:"입자가 규칙적으로 촘촘히 배열되어 모양과 부피가 일정한 상태는?",o:["고체","액체","기체","플라스마"],a:0,e:"<b>고체</b>는 입자가 제자리에서 진동만 해서 모양이 단단하게 유지돼요."},
+          {q:"얼음이 녹아 물이 되는 것처럼 고체가 액체로 되는 상태 변화는?",o:["융해","응고","기화","승화"],a:0,e:"<b>융해</b>! 고체→액체. 반대로 액체→고체는 응고예요."},
+          {q:"물이 끓어 수증기가 되는 것처럼 액체가 기체로 되는 상태 변화는?",o:["액화","기화","융해","응고"],a:1,e:"<b>기화</b>! 액체→기체. 빨래가 마르는 것도 기화(증발)예요."}
+        ]},
+      { title:"변신의 이름들", diff:"mid",
+        lesson:["<span class='k'>액화</span>: 기체→액체 (차가운 유리창의 물방울)",
+                "<span class='k'>응고</span>: 액체→고체 (물→얼음)",
+                "<span class='k'>승화</span>: 고체↔기체 (드라이아이스, 옷장 나프탈렌)",
+                "상태가 변해도 <b>입자의 종류·크기·질량은 그대로!</b> (배열·운동만 변함)"],
+        qs:[
+          {q:"차가운 유리창에 물방울이 맺히는 것처럼, 기체가 액체로 되는 변화는?",o:["기화","액화","승화","융해"],a:1,e:"<b>액화</b>! 기체→액체. 공기 중 수증기가 차가운 유리에 닿아 물방울이 돼요."},
+          {q:"드라이아이스가 액체를 거치지 않고 바로 기체로 변하는 상태 변화는?",o:["융해","기화","승화","응고"],a:2,e:"<b>승화</b>! 고체↔기체로 바로 변해요. 드라이아이스, 나프탈렌이 대표적이에요."},
+          {q:"상태 변화가 일어날 때 <u>변하지 않는</u> 것은?",o:["입자의 배열","입자의 운동","입자의 종류와 질량","부피"],a:2,e:"상태가 변해도 <b>입자 자체(종류·질량)</b>는 그대로! 배열과 운동만 달라져요."},
+          {q:"물이 얼어 얼음이 되는, 액체가 고체로 되는 상태 변화는?",o:["융해","응고","기화","액화"],a:1,e:"<b>응고</b>! 액체→고체. 이때 열을 방출(밖으로 내보냄)해요."}
+        ]},
+      { title:"숨은 열의 규칙", diff:"hard",
+        lesson:["열을 <b>흡수</b>하는 변화: 융해·기화·승화(고→기) → 주변이 시원해짐",
+                "열을 <b>방출</b>하는 변화: 응고·액화·승화(기→고) → 주변이 따뜻해짐",
+                "녹는점·끓는점에서 <b>온도가 일정</b>: 흡수한 열이 상태 변화에 쓰이기 때문",
+                "증발할 때 주변 열을 흡수 → 마당에 물 뿌리면 시원해져요."],
+        qs:[
+          {q:"열에너지를 <b>흡수</b>하는 상태 변화끼리 옳게 묶은 것은?",o:["융해·기화·승화(고→기)","응고·액화","응고·기화","액화·융해"],a:0,e:"융해·기화·승화(고→기)는 열을 <b>흡수</b>해요. 그래서 주변이 시원해지죠."},
+          {q:"얼음이 다 녹을 때까지 온도가 0℃로 일정하게 유지되는 까닭은?",o:["열을 방출해서","흡수한 열이 상태 변화에 쓰여서","입자가 사라져서","비열이 0이라서"],a:1,e:"녹는 동안 <b>흡수한 열이 상태 변화(융해)에 쓰여</b> 온도가 오르지 않고 일정해요."},
+          {q:"더운 날 마당에 물을 뿌리면 시원해지는 까닭은?",o:["물이 얼면서 열을 내서","물이 증발하며 주변 열을 흡수해서","물이 빛을 반사해서","물이 무거워서"],a:1,e:"물이 <b>증발(기화)</b>하면서 주변의 열을 흡수해 시원해져요."},
+          {q:"응고·액화·승화(기→고)의 공통점으로 옳은 것은?",o:["열을 흡수한다","열을 방출한다","입자가 늘어난다","질량이 변한다"],a:1,e:"이 변화들은 열을 <b>방출</b>해요. 이글루 안에 물을 뿌리면 얼면서 열을 내 따뜻해지는 원리!"}
+        ]},
+    ],
+    eggs:[
+      {t:"이글루의 비밀",x:"이글루 안쪽 벽에 물을 뿌리면 물이 얼면서(응고) 열을 방출해요. 그래서 안이 오히려 따뜻해진답니다!"},
+      {t:"거꾸로 가는 물",x:"대부분의 물질은 얼면 부피가 줄지만, 물은 얼면 부피가 늘어나요. 그래서 얼음이 물 위에 뜨죠!"}
+    ]
+  },
+
+  {
+    id:"force", icon:"⚙️", color:"#a98bff", name:"힘의 작용",
+    tag:"힘 · 중력 · 탄성력 · 마찰력 · 부력",
+    piece:"⚓",
+    story:"밀고, 당기고, 떨어지고, 떠오르고 — 세상 모든 움직임 뒤에는 '힘'이 있습니다. 눈에 보이지 않는 힘들을 화살표로 그려내면, 닻에 묶인 보물 상자의 자물쇠가 풀립니다!",
+    stages:[
+      { title:"힘을 느껴봐", diff:"easy",
+        lesson:["<span class='k'>힘</span>: 물체의 <b>모양</b>이나 <b>운동 상태</b>를 변화시키는 원인",
+                "힘의 단위: <b>N(뉴턴)</b>",
+                "힘의 3요소: <b>크기 · 방향 · 작용점</b> (화살표로 표시)",
+                "<span class='k'>중력</span>: 지구가 물체를 지구 중심 방향으로 끌어당기는 힘"],
+        qs:[
+          {q:"물체의 모양이나 운동 상태를 변화시키는 원인은?",o:["힘","무게","속력","온도"],a:0,e:"<b>힘</b>이 작용하면 물체의 모양이 바뀌거나 빨라지고 느려지거나 방향이 변해요."},
+          {q:"힘의 크기를 나타내는 단위는?",o:["kg","N(뉴턴)","℃","m"],a:1,e:"힘의 단위는 <b>N(뉴턴)</b>이에요. 과학자 뉴턴의 이름에서 왔어요."},
+          {q:"힘의 3요소가 <u>아닌</u> 것은?",o:["크기","방향","작용점","색깔"],a:3,e:"힘의 3요소는 <b>크기·방향·작용점</b>! 그래서 힘을 화살표로 그려 나타내요."},
+          {q:"지구가 물체를 지구 중심 방향으로 끌어당기는 힘은?",o:["탄성력","마찰력","중력","부력"],a:2,e:"<b>중력</b>! 사과가 아래로 떨어지는 이유죠. 방향은 항상 지구 중심(아래)이에요."}
+        ]},
+      { title:"질량과 무게, 그리고 탄성", diff:"mid",
+        lesson:["<span class='k'>질량</span>: 물질의 고유한 양 → 어디서나 <b>일정</b> (단위 kg)",
+                "<span class='k'>무게</span>: 물체에 작용하는 중력의 크기 → 장소에 따라 <b>변함</b> (단위 N)",
+                "달에서의 무게는 지구의 약 <b>1/6</b> (질량은 그대로)",
+                "<span class='k'>탄성력</span>: 변형된 물체가 원래로 돌아가려는 힘 (변형 반대 방향)"],
+        qs:[
+          {q:"장소가 달라져도 변하지 않는, 물질의 고유한 양은?",o:["무게","질량","중력","부력"],a:1,e:"<b>질량</b>은 어디서나 일정해요(kg). 무게는 중력에 따라 변해요(N)."},
+          {q:"달에서 잰 물체의 무게는 지구에서의 약 얼마일까?",o:["6배","같다","1/6","1/2"],a:2,e:"달의 중력은 지구의 약 1/6이라, 무게도 <b>약 1/6</b>! 하지만 질량은 그대로예요."},
+          {q:"눌리거나 늘어난 용수철이 원래 모양으로 돌아가려는 힘은?",o:["중력","탄성력","마찰력","부력"],a:1,e:"<b>탄성력</b>! 트램펄린, 고무줄, 활이 모두 탄성력을 이용해요."},
+          {q:"용수철을 아래로 잡아당길 때 탄성력의 방향은?",o:["아래쪽","위쪽","옆쪽","방향 없음"],a:1,e:"탄성력은 <b>변형된 방향의 반대</b>로 작용해요. 아래로 당기면 위로 당기는 힘이 생겨요."}
+        ]},
+      { title:"마찰과 부력의 균형", diff:"hard",
+        lesson:["<span class='k'>마찰력</span>: 접촉면에서 운동을 <b>방해</b>하는 힘 (운동 반대 방향)",
+                "마찰력은 접촉면이 <b>거칠수록</b>, 물체가 <b>무거울수록</b> 큼 (접촉 넓이와 무관)",
+                "<span class='k'>부력</span>: 액체·기체가 물체를 <b>위로</b> 밀어 올리는 힘",
+                "물속에서 물체가 가벼워지는 것은 위로 작용하는 부력 때문."],
+        qs:[
+          {q:"두 물체의 접촉면에서 물체의 운동을 방해하는 힘은?",o:["탄성력","마찰력","부력","중력"],a:1,e:"<b>마찰력</b>! 운동 방향의 반대로 작용해요. 얼음판이 미끄러운 건 마찰력이 작기 때문이죠."},
+          {q:"마찰력에 대한 설명으로 옳은 것은?",o:["접촉면이 매끄러울수록 크다","무거울수록 크다","접촉 면적이 넓을수록 항상 크다","항상 위 방향이다"],a:1,e:"마찰력은 접촉면이 <b>거칠수록</b>, 물체가 <b>무거울수록</b> 커져요. 접촉 넓이와는 관계 없어요."},
+          {q:"물이나 공기가 물체를 위로 밀어 올리는 힘은?",o:["중력","마찰력","부력","탄성력"],a:2,e:"<b>부력</b>! 방향은 항상 위쪽이에요. 거대한 배가 뜨는 것도 부력 덕분이죠."},
+          {q:"물속에서 돌이 공기 중보다 가볍게 느껴지는 까닭은?",o:["중력이 사라져서","위 방향으로 부력이 작용해서","마찰력 때문에","물이 무거워서"],a:1,e:"물속에서는 위로 <b>부력</b>이 작용해 중력의 일부를 상쇄하므로 가볍게 느껴져요."}
+        ]},
+    ],
+    eggs:[
+      {t:"우주에서 둥둥",x:"우주 정거장에서 물체가 떠다니는 건 중력이 없어서가 아니라, 우주선과 함께 지구로 계속 '자유낙하'하고 있기 때문이에요!"},
+      {t:"거대한 배가 뜨는 이유",x:"쇠로 만든 큰 배가 뜨는 건 부력 덕분! 배가 밀어낸 물의 무게만큼 위로 밀어 올리는 힘을 받거든요."}
+    ]
+  },
+
+  {
+    id:"gas", icon:"🎈", color:"#2dd4bf", name:"기체의 성질",
+    tag:"입자 운동 · 확산·증발 · 압력 · 보일·샤를",
+    piece:"🎈",
+    story:"눈에 보이지 않는 기체 입자들이 끊임없이 날아다닙니다. 향기가 퍼지고, 풍선이 부풀고, 과자 봉지가 터지려 하는 이유 — 입자의 움직임을 이해하면 하늘의 열기구 보물이 열립니다!",
+    stages:[
+      { title:"보이지 않는 입자들", diff:"easy",
+        lesson:["기체 입자는 <b>스스로 · 모든 방향으로 · 끊임없이</b> 운동해요.",
+                "<span class='k'>확산</span>: 입자가 스스로 퍼져 나가는 현상 (향수 냄새)",
+                "<span class='k'>증발</span>: 액체 표면에서 액체가 기체로 변하는 현상 (빨래 마름)",
+                "확산은 온도가 <b>높을수록</b>, 입자가 <b>가벼울수록</b> 빨라요."],
+        qs:[
+          {q:"향수 냄새가 방 전체로 퍼지는 것처럼, 입자가 스스로 퍼져 나가는 현상은?",o:["확산","증발","응고","압력"],a:0,e:"<b>확산</b>! 기체 입자가 스스로 움직여 골고루 퍼져요."},
+          {q:"젖은 빨래가 마르는 것처럼 액체 표면에서 기체로 변하는 현상은?",o:["확산","증발","융해","액화"],a:1,e:"<b>증발</b>! 액체 표면의 입자가 튀어나가 기체가 돼요."},
+          {q:"기체 입자의 운동에 대한 설명으로 옳은 것은?",o:["한 방향으로만 움직인다","멈춰 있다","스스로 모든 방향으로 끊임없이 움직인다","고체보다 느리다"],a:2,e:"기체 입자는 <b>스스로, 모든 방향으로, 끊임없이</b> 날아다녀요. 그래서 냄새가 퍼지죠."},
+          {q:"확산은 온도가 어떻게 될 때 더 빠를까?",o:["낮을수록","높을수록","0℃일 때","관계없다"],a:1,e:"온도가 <b>높을수록</b> 입자가 활발히 움직여 확산이 빨라져요."}
+        ]},
+      { title:"퍼짐과 누름", diff:"mid",
+        lesson:["증발이 빠른 조건: <b>온도↑, 표면적↑, 바람↑, 습도↓</b>",
+                "<span class='k'>기체의 압력</span>: 기체 입자가 벽에 충돌하며 미는 힘",
+                "확산 속도: 입자가 <b>가벼울수록</b> 빠름",
+                "온도 일정 시, 압력을 가하면 기체 부피는 <b>작아짐</b>."],
+        qs:[
+          {q:"증발이 빠르게 일어나는 조건이 <u>아닌</u> 것은?",o:["온도가 높다","표면적이 넓다","바람이 분다","습도가 높다"],a:3,e:"습도가 <b>낮을수록</b> 증발이 빨라요. 습도가 높으면 오히려 잘 안 말라요."},
+          {q:"기체 입자가 그릇의 벽에 충돌하며 미는 힘을 무엇이라 할까?",o:["부력","(기체) 압력","탄성력","비열"],a:1,e:"<b>압력</b>! 수많은 입자가 벽에 부딪히며 밀어내는 힘이에요."},
+          {q:"온도가 일정할 때 기체에 압력을 세게 가하면 부피는 어떻게 될까?",o:["커진다","작아진다","변화 없다","0이 된다"],a:1,e:"압력을 가하면 입자 사이가 좁아져 부피가 <b>작아져요</b> (보일 법칙)."},
+          {q:"확산 속도가 더 빠른 경우로 옳은 것은?",o:["입자가 무거울수록","입자가 가벼울수록","온도가 낮을수록","압력이 클수록"],a:1,e:"입자가 <b>가벼울수록</b> 빨리 움직여 확산이 빨라요."}
+        ]},
+      { title:"보일과 샤를의 법칙", diff:"hard",
+        lesson:["<span class='k'>보일 법칙</span>: 온도 일정 → 압력↑ 이면 부피↓ (반비례)",
+                "예: 높은 산에서 과자 봉지가 부풂 (바깥 압력↓ → 부피↑)",
+                "<span class='k'>샤를 법칙</span>: 압력 일정 → 온도↑ 이면 부피↑ (비례)",
+                "예: 찌그러진 탁구공을 뜨거운 물에 넣으면 펴짐, 열기구가 뜸"],
+        qs:[
+          {q:"온도가 일정할 때 압력이 커지면 부피가 작아지는 관계를 나타내는 법칙은?",o:["샤를 법칙","보일 법칙","열평형 법칙","관성 법칙"],a:1,e:"<b>보일 법칙</b>: 온도 일정 시 압력과 부피는 반비례해요."},
+          {q:"높은 산에 올라가면 밀봉한 과자 봉지가 부풀어 오르는 까닭은?",o:["온도가 높아져서","바깥 압력이 낮아져 부피가 커져서","입자가 늘어나서","습도가 높아서"],a:1,e:"높은 곳은 바깥 <b>압력이 낮아</b> 봉지 속 기체가 팽창해요 (보일 법칙)."},
+          {q:"압력이 일정할 때 온도가 높아지면 부피가 커지는 법칙은?",o:["보일 법칙","샤를 법칙","비열 법칙","부력 법칙"],a:1,e:"<b>샤를 법칙</b>: 압력 일정 시 온도와 부피는 비례해요. 입자 운동이 활발해져 팽창!"},
+          {q:"찌그러진 탁구공을 뜨거운 물에 넣으면 다시 펴지는 까닭은?",o:["물이 스며들어서","온도가 올라 기체 부피가 커져서","압력이 세져서","공이 녹아서"],a:1,e:"공 안 기체가 데워져 <b>부피가 커지며</b> 펴져요 (샤를 법칙). 열기구가 뜨는 원리와 같아요!"}
+        ]},
+    ],
+    eggs:[
+      {t:"열기구가 뜨는 이유",x:"열기구는 공기를 데우면 부피가 커지고 가벼워져서(샤를 법칙) 하늘로 떠올라요!"},
+      {t:"잠수병의 비밀",x:"깊은 바다는 압력이 높아요. 잠수부가 갑자기 올라오면 몸속에 녹아 있던 기체가 팽창해 위험해져요(잠수병)."}
+    ]
+  },
+
+  {
+    id:"solar", icon:"🪐", color:"#6f8cff", name:"태양계",
+    tag:"지구·달의 운동 · 행성 · 태양",
+    piece:"⭐",
+    story:"발밑의 지구에서 눈을 들어 우주로! 태양을 중심으로 도는 여덟 행성과 반짝이는 별들. 하늘의 규칙을 읽어내는 탐험가만이 마지막 별의 보물, 우주의 지도를 완성할 수 있습니다!",
+    stages:[
+      { title:"밤하늘 올려다보기", diff:"easy",
+        lesson:["<span class='k'>태양</span>: 태양계 중심에서 <b>스스로 빛</b>을 내는 별",
+                "<span class='k'>달</span>: 지구 주위를 도는 지구의 위성",
+                "태양계 행성은 모두 <b>8개</b> (수·금·지·화·목·토·천·해)",
+                "달의 모양이 초승달→보름달→그믐달로 바뀜 = <b>달의 위상 변화</b>"],
+        qs:[
+          {q:"태양계의 중심에 있으며 스스로 빛을 내는 천체는?",o:["달","태양","지구","화성"],a:1,e:"<b>태양</b>은 스스로 빛을 내는 별! 태양계의 유일한 항성이에요."},
+          {q:"지구 주위를 도는 지구의 위성은?",o:["태양","달","금성","목성"],a:1,e:"<b>달</b>은 지구의 위성이에요. 스스로 빛을 내지 못하고 햇빛을 반사해 밝게 보여요."},
+          {q:"태양계의 행성은 모두 몇 개일까?",o:["6개","7개","8개","9개"],a:2,e:"태양계 행성은 <b>8개</b>! 수성·금성·지구·화성·목성·토성·천왕성·해왕성이에요."},
+          {q:"밤하늘 달의 모양이 초승달·보름달 등으로 바뀌는 현상은?",o:["달의 위상 변화","일식","자전","열팽창"],a:0,e:"<b>달의 위상 변화</b>! 달이 지구를 공전하며 햇빛 받는 부분이 달라져 보여요."}
+        ]},
+      { title:"돌고 도는 지구", diff:"mid",
+        lesson:["<span class='k'>자전</span>: 지구가 하루에 한 바퀴 스스로 도는 운동 (하루·낮밤)",
+                "<span class='k'>공전</span>: 지구가 1년에 태양 둘레를 한 바퀴 도는 운동 (계절)",
+                "해가 동→서로 지는 것처럼 보이는 건 지구의 <b>자전</b> 때문",
+                "계절 변화는 자전축이 기울어진 채 <b>공전</b>하기 때문"],
+        qs:[
+          {q:"지구가 하루에 한 바퀴씩 스스로 도는 운동은?",o:["공전","자전","위상 변화","일식"],a:1,e:"<b>자전</b>! 하루(24시간)에 한 바퀴 돌아 낮과 밤이 생겨요."},
+          {q:"지구가 1년에 걸쳐 태양 둘레를 한 바퀴 도는 운동은?",o:["자전","공전","반사","복사"],a:1,e:"<b>공전</b>! 1년에 한 바퀴 돌며, 자전축이 기울어 계절이 생겨요."},
+          {q:"태양이 동쪽에서 떠서 서쪽으로 지는 것처럼 보이는 까닭은?",o:["태양이 지구를 돌아서","지구의 자전 때문","달의 공전 때문","지구의 열팽창 때문"],a:1,e:"실제로는 <b>지구가 자전</b>해서 태양이 움직이는 것처럼 보여요(일주 운동)."},
+          {q:"우리나라에 봄·여름·가을·겨울 계절이 생기는 것과 관련 있는 운동은?",o:["지구의 자전","기울어진 채로 하는 지구의 공전","달의 자전","태양의 공전"],a:1,e:"<b>자전축이 기울어진 채 공전</b>하기 때문에 태양 높이와 낮 길이가 달라져 계절이 생겨요."}
+        ]},
+      { title:"행성과 태양의 얼굴", diff:"hard",
+        lesson:["<span class='k'>지구형 행성</span>(수·금·지·화): 크기 작고 밀도 큼, 표면 단단",
+                "<span class='k'>목성형 행성</span>(목·토·천·해): 크기 크고 밀도 작음, 주로 기체",
+                "<span class='k'>흑점</span>: 태양 표면에서 주변보다 온도가 낮아 어둡게 보이는 곳",
+                "태양 활동이 활발하면 지구에 오로라·자기 폭풍(통신 장애) 발생"],
+        qs:[
+          {q:"크기가 작고 밀도가 크며 표면이 단단한 '지구형 행성'이 <u>아닌</u> 것은?",o:["수성","금성","화성","목성"],a:3,e:"<b>목성</b>은 목성형 행성! 지구형 행성은 수성·금성·지구·화성이에요."},
+          {q:"목성형 행성의 특징으로 옳은 것은?",o:["크기가 작고 밀도가 크다","단단한 암석 표면이다","크기가 크고 주로 기체로 되어 있다","태양과 가장 가깝다"],a:2,e:"<b>목성형 행성</b>은 크고 밀도가 작으며 주로 기체로 이루어져 있어요(목·토·천·해)."},
+          {q:"태양 표면에서 주변보다 온도가 낮아 어둡게 보이는 부분은?",o:["코로나","흑점","홍염","광구"],a:1,e:"<b>흑점</b>은 주변보다 약 2000℃ 낮아 상대적으로 어둡게 보여요."},
+          {q:"태양 활동이 활발할 때 지구에 나타날 수 있는 현상은?",o:["오로라·자기 폭풍(통신 장애)","지진만 발생","계절 소멸","중력 소멸"],a:0,e:"태양이 활발하면 <b>오로라</b>가 강해지고 <b>자기 폭풍</b>으로 통신·전력에 문제가 생기기도 해요."}
+        ]},
+    ],
+    eggs:[
+      {t:"8분 20초의 여행",x:"태양 빛이 지구까지 오는 데 약 8분 20초 걸려요. 지금 보는 햇빛은 8분 전에 출발한 빛이랍니다!"},
+      {t:"어마어마한 목성",x:"태양계에서 가장 큰 행성 목성 안에는 지구가 1300개 넘게 들어갈 만큼 커요!"}
+    ]
+  },
+];
+
+/* 홈 화면 공통 숨은 상식(이스터에그) */
+const HOME_EGGS = [
+  {t:"우주의 색",x:"우주는 완전한 검정이 아니라, 모든 별빛을 평균 내면 아주 옅은 '우주 라떼(베이지)'색이라고 해요!"},
+  {t:"번개의 속도",x:"번개가 칠 때 빛이 먼저 보이고 천둥이 나중에 들리는 건, 빛이 소리보다 훨씬 빠르기 때문이에요."},
+  {t:"물 한 방울",x:"물 한 방울 속에는 상상하기 어려울 만큼 많은 물 분자가 들어 있어요. 입자의 세계는 정말 넓답니다!"},
+];
+
+/* 진화 단계 */
+const RANKS = [
+  {n:"호기심 새싹", e:"🔰", need:0},
+  {n:"탐험 견습생", e:"🧭", need:6},
+  {n:"탐구자",     e:"🔭", need:14},
+  {n:"과학 탐험가", e:"⭐", need:24},
+  {n:"개념 마스터", e:"🚀", need:36},
+  {n:"과학 박사",   e:"👑", need:48},
+];
+
+/* =========================================================
+   상태 관리
+   ========================================================= */
+const SAVE_KEY = "sci_treasure_v1";
+let state = load();
+function load(){
+  try{ const s=JSON.parse(localStorage.getItem(SAVE_KEY)); if(s&&s.stars) return s; }catch(e){}
+  return { stars:{}, coins:0, eggsFound:{} }; // stars[unitId][stageIdx]=0~3
+}
+function save(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify(state)); }catch(e){} }
+function resetProgress(){
+  if(!confirm("정말 처음부터 다시 시작할까요?\n\n지금까지 모은 별 ⭐, 숨은 보물 💎, 열린 지도 조각이 모두 사라지고\n되돌릴 수 없어요.")) return;
+  try{ localStorage.removeItem(SAVE_KEY); }catch(e){}
+  state = { stars:{}, coins:0, eggsFound:{} };
+  goHome();
+  alert("초기화 완료! 새로운 탐험을 시작하세요 🗺️");
+}
+
+function unitStars(uid){ const o=state.stars[uid]||{}; return Object.values(o).reduce((a,b)=>a+b,0); }
+function unitCleared(uid){ const o=state.stars[uid]||{}; return Object.keys(o).length>=3 && [0,1,2].every(i=>(o[i]||0)>=1); }
+function totalStars(){ return UNITS.reduce((a,u)=>a+unitStars(u.id),0); }
+function stageUnlocked(uid,idx){ if(idx===0) return true; const o=state.stars[uid]||{}; return (o[idx-1]||0)>=1; }
+
+/* =========================================================
+   렌더링
+   ========================================================= */
+const $=id=>document.getElementById(id);
+
+function renderHeader(){
+  const t=totalStars();
+  let r=RANKS[0], next=null;
+  for(let i=0;i<RANKS.length;i++){ if(t>=RANKS[i].need){ r=RANKS[i]; next=RANKS[i+1]||null; } }
+  $("avatar").textContent=r.e;
+  $("rankName").textContent=r.n;
+  const idx=RANKS.indexOf(r);
+  if(next){
+    $("rankSub").innerHTML=`Lv.${idx+1} · 다음 진화까지 ★${next.need - t}`;
+    const span=next.need - r.need; const cur=t - r.need;
+    $("xpfill").style.width=Math.min(100,(cur/span)*100)+"%";
+  }else{
+    $("rankSub").innerHTML=`Lv.${idx+1} · 최고 단계 달성! 👑`;
+    $("xpfill").style.width="100%";
+  }
+  $("coinCount").textContent=state.coins||0;
+}
+
+function renderMap(){
+  const g=$("mapGrid"); g.innerHTML="";
+  let open=0;
+  UNITS.forEach((u,i)=>{
+    const done=unitCleared(u.id); if(done) open++;
+    const t=document.createElement("div");
+    t.className="tile"+(done?" done":"");
+    t.innerHTML = done
+      ? `<span class="pn">조각 ${i+1}</span><span class="pieceIcon">${u.piece}</span>`
+      : `<span class="pn">조각 ${i+1}</span><span class="lock">🔒</span>`;
+    g.appendChild(t);
+  });
+  const badge=$("treasureBadge");
+  if(open>=6){
+    badge.innerHTML="🎉 <b style='color:#b9770f'>6조각 완성! 전설의 보물 상자가 나타났어요!</b> — <span style='text-decoration:underline;cursor:pointer;font-weight:700' onclick='showTreasure()'>🔓 상자 열기</span>";
+  }else{
+    badge.innerHTML=`열린 조각: <b>${open}</b> / 6`;
+  }
+}
+
+function renderUnits(){
+  const g=$("unitGrid"); g.innerHTML="";
+  UNITS.forEach((u,i)=>{
+    const s=unitStars(u.id), max=9, done=unitCleared(u.id);
+    const card=document.createElement("div");
+    card.className="unit"+(done?" cleared":"");
+    card.onclick=()=>openUnit(i);
+    card.innerHTML=`
+      <div class="bar-accent" style="background:${u.color}"></div>
+      <span class="clearFlag">✔ 완료</span>
+      <div class="uicon">${u.icon}</div>
+      <h3>${i+1}. ${u.name}</h3>
+      <div class="utag">${u.tag}</div>
+      <div class="progRow">
+        <span class="stars">${"★".repeat(Math.round(s/3))}${"☆".repeat(3-Math.round(s/3))}</span>
+        <div class="miniBar"><div class="miniFill" style="width:${(s/max)*100}%;background:${u.color}"></div></div>
+      </div>`;
+    g.appendChild(card);
+  });
+}
+
+/* ===== 화면 전환 ===== */
+function show(id){ document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active")); $(id).classList.add("active"); window.scrollTo(0,0); }
+function goHome(){ renderAll(); show("home"); }
+
+let curUnit=0, curStage=0, qIdx=0, lives=3, correctCount=0, answered=false;
+
+function openUnit(i){
+  curUnit=i; const u=UNITS[i];
+  $("uHeadIcon").textContent=u.icon;
+  $("uHeadName").textContent=`${i+1}. ${u.name}`;
+  $("uHeadTag").textContent=u.tag;
+  $("uStory").textContent=u.story;
+  const list=$("stageList"); list.innerHTML="";
+  const diffLabel={easy:["🌱 기초 · 재미있게",'lv-easy'],mid:["🔍 개념 · 이해하기",'lv-mid'],hard:["🧠 심화 · 깊이 있게",'lv-hard']};
+  u.stages.forEach((st,idx)=>{
+    const unlocked=stageUnlocked(u.id,idx);
+    const stars=(state.stars[u.id]||{})[idx]||0;
+    const card=document.createElement("div");
+    card.className="stageCard"+(unlocked?"":" locked");
+    const dl=diffLabel[st.diff];
+    card.innerHTML=`
+      <div class="stageNum">${unlocked?(idx+1):"🔒"}</div>
+      <div class="stageMeta">
+        <h4>${st.title}</h4>
+        <span class="lvltag ${dl[1]}">${dl[0]}</span>
+      </div>
+      <div class="stageStars">${"★".repeat(stars)}${"☆".repeat(3-stars)}</div>`;
+    if(unlocked) card.onclick=()=>startStage(idx);
+    list.appendChild(card);
+  });
+  show("unit");
+}
+
+/* ===== 퀴즈 ===== */
+function startStage(idx){
+  curStage=idx; qIdx=0; lives=3; correctCount=0;
+  show("quiz"); loadQuestion();
+}
+function loadQuestion(){
+  answered=false;
+  const st=UNITS[curUnit].stages[curStage];
+  const q=st.qs[qIdx];
+  $("qtag").textContent=`${UNITS[curUnit].name} · ${st.title}`;
+  $("qtext").innerHTML=q.q;
+  const _row=(QFIG[UNITS[curUnit].id]||[])[curStage];
+  const _fig=_row?_row[qIdx]:null;
+  $("qfig").innerHTML=(_fig&&FIG[_fig])?FIG[_fig]:"";
+  $("qcount").textContent=`${qIdx+1} / ${st.qs.length}`;
+  $("qprogFill").style.width=((qIdx)/st.qs.length*100)+"%";
+  $("lives").textContent="●".repeat(lives)+"○".repeat(3-lives);
+  $("explain").className="explain"; $("explain").innerHTML="";
+  $("nextBtn").className="nextBtn";
+  const opts=$("opts"); opts.innerHTML="";
+  q.o.forEach((txt,i)=>{
+    const b=document.createElement("button");
+    b.className="opt"; b.innerHTML=txt;
+    b.onclick=()=>choose(i,b);
+    opts.appendChild(b);
+  });
+}
+function choose(i,btn){
+  if(answered) return; answered=true;
+  const st=UNITS[curUnit].stages[curStage];
+  const q=st.qs[qIdx];
+  const opts=[...document.querySelectorAll(".opt")];
+  opts.forEach(o=>o.classList.add("disabled"));
+  if(i===q.a){
+    btn.classList.add("correct"); correctCount++;
+  }else{
+    btn.classList.add("wrong");
+    opts[q.a].classList.add("correct");
+    lives--;
+  }
+  $("lives").textContent="●".repeat(Math.max(0,lives))+"○".repeat(3-Math.max(0,lives));
+  const ex=$("explain"); ex.innerHTML=(i===q.a?"✅ <b>정답!</b> ":"💡 ")+q.e; ex.classList.add("show");
+
+  if(lives<=0){ // 실패 → 보충학습
+    setTimeout(showRemedial,700); return;
+  }
+  $("nextBtn").classList.add("show");
+  $("nextBtn").textContent = (qIdx>=st.qs.length-1) ? "결과 보기 🎉" : "다음 →";
+}
+function nextQuestion(){
+  const st=UNITS[curUnit].stages[curStage];
+  if(qIdx>=st.qs.length-1){ finishStage(); }
+  else{ qIdx++; loadQuestion(); }
+}
+function quitQuiz(){ openUnit(curUnit); }
+
+/* ===== 결과 / 보충학습 ===== */
+function finishStage(){
+  const st=UNITS[curUnit].stages[curStage];
+  const total=st.qs.length;
+  // 별점: 만점=3, 1개 틀림=2, 그 외 통과=1
+  const wrong=total-correctCount;
+  let stars = wrong===0?3 : wrong===1?2 : 1;
+  const u=UNITS[curUnit];
+  if(!state.stars[u.id]) state.stars[u.id]={};
+  const prev=state.stars[u.id][curStage]||0;
+  const newBest=Math.max(prev,stars);
+  const evolvedBefore=totalStars();
+  state.stars[u.id][curStage]=newBest; save();
+  const justCleared=unitCleared(u.id);
+  const gained=newBest-prev;
+
+  confetti();
+  const rankBefore=rankIndexFor(evolvedBefore);
+  const rankAfter=rankIndexFor(totalStars());
+  let evolveMsg = rankAfter>rankBefore ? `<p style="color:#1f9d6b;margin-top:8px">✨ 진화! <b>${RANKS[rankAfter].e} ${RANKS[rankAfter].n}</b> (으)로 레벨업했어요!</p>` : "";
+  let unitMsg = justCleared ? `<p style="color:#b9770f;margin-top:8px">🗺️ 지도 조각 <b>${u.piece}</b> 획득! 이 단원을 완료했어요!</p>` : "";
+
+  const last = curStage>=u.stages.length-1;
+  openModal(`
+    <div class="em">${stars===3?"🏆":stars===2?"🎉":"👍"}</div>
+    <h3>${stars===3?"완벽해요!":stars===2?"통과!":"통과!"}</h3>
+    <div class="starRow">${"★".repeat(stars)}${"☆".repeat(3-stars)}</div>
+    <p>${total}문제 중 <b>${correctCount}개</b> 정답!</p>
+    ${evolveMsg}${unitMsg}
+    <div class="mbtns">
+      <button class="mbtn ghost" onclick="closeModal();startStage(${curStage})">다시 도전</button>
+      ${ !last ? `<button class="mbtn primary" onclick="closeModal();startStage(${curStage+1})">다음 단계 →</button>`
+               : `<button class="mbtn primary" onclick="closeModal();goHome()">지도로 →</button>` }
+    </div>
+  `);
+}
+
+function showRemedial(){
+  const st=UNITS[curUnit].stages[curStage];
+  const items=st.lesson.map(l=>`<li>${l}</li>`).join("");
+  openModal(`
+    <div class="em">📖</div>
+    <h3>보충학습 시간!</h3>
+    <p style="color:#4b4763">괜찮아요! 아래 핵심 개념을 익히고 다시 도전하면 반드시 넘을 수 있어요. 💪</p>
+    <div class="lessonBox"><b style="color:#b9770f">${st.title} 핵심 정리</b><ul style="margin-top:8px">${items}</ul></div>
+    <div class="mbtns">
+      <button class="mbtn primary" onclick="closeModal();startStage(${curStage})">🔁 다시 도전!</button>
+      <button class="mbtn ghost" onclick="closeModal();openUnit(${curUnit})">단계 목록</button>
+    </div>
+  `);
+}
+
+function rankIndexFor(t){ let idx=0; for(let i=0;i<RANKS.length;i++){ if(t>=RANKS[i].need) idx=i; } return idx; }
+
+/* ===== 모달 ===== */
+function openModal(html){ $("modal").innerHTML=html; $("overlay").classList.add("show"); }
+function closeModal(){ $("overlay").classList.remove("show"); }
+$("overlay").addEventListener("click",e=>{ if(e.target===$("overlay")) closeModal(); });
+
+/* ===== 보물 공개 ===== */
+function showTreasure(){
+  openModal(`
+    <div style="font-size:26px">🏝️✨</div>
+    <h3 style="margin-top:4px">드디어… 마지막 보물 상자!</h3>
+    <p style="font-size:13.5px">6단원을 모두 정복한 <b style="color:#b9770f">진짜 탐험가</b>만이<br>이 상자를 열 수 있어요. 과연 안에는 뭐가 있을까요?</p>
+    <div class="chestScene">
+      <div class="chest" id="chest">
+        <div class="rays"></div>
+        <div class="chest-glow"></div>
+        <div class="chest-prize"><span class="spin">🧠</span></div>
+        <div class="chest-body"></div>
+        <div class="chest-band"></div>
+        <div class="chest-lock"></div>
+        <div class="chest-lid"></div>
+      </div>
+    </div>
+    <div id="treasureReveal"></div>
+    <div class="mbtns" id="chestBtns"><button class="mbtn primary" id="openChestBtn" onclick="openChest()">🔓 두근두근… 상자 열기!</button></div>
+  `);
+}
+function openChest(){
+  const chest=$("chest"); if(!chest||chest.classList.contains("open")) return;
+  const btns=$("chestBtns"); if(btns) btns.style.display="none";
+  chest.classList.add("shake");
+  setTimeout(()=>{
+    chest.classList.remove("shake");
+    chest.classList.add("open");
+    bigConfetti(); coinRain();
+    setTimeout(revealPrize, 680);
+  }, 640);
+}
+function coinRain(){
+  const em=["🪙","💎","⭐","🏆","✨","💰","🌟"];
+  for(let i=0;i<44;i++){
+    const c=document.createElement("div"); c.className="confetti";
+    c.textContent=em[i%em.length]; c.style.left=Math.random()*100+"%";
+    c.style.animationDuration=(1.6+Math.random()*1.8)+"s"; c.style.fontSize=(16+Math.random()*18)+"px";
+    c.style.animationDelay=(Math.random()*0.6)+"s";
+    document.body.appendChild(c); setTimeout(()=>c.remove(),3800);
+  }
+}
+const TREASURE_TITLES=[
+  "우주를 꿰뚫어 본 별빛 항해사 🌌",
+  "입자의 춤을 읽어낸 미시세계 탐정 🔬",
+  "힘의 흐름을 그려낸 에너지 마법사 ⚡",
+  "생명의 비밀을 푼 초록빛 생물학자 🌿",
+  "열과 기체를 다스린 온도 연금술사 🔥",
+  "행성을 손에 쥔 태양계 정복자 🪐"
+];
+function revealPrize(){
+  const title=TREASURE_TITLES[Math.floor(Math.random()*TREASURE_TITLES.length)];
+  const code="SCIENCE-"+(1000+Math.floor(Math.random()*9000));
+  const box=$("treasureReveal");
+  box.innerHTML=`
+    <div class="tada" id="tadaTxt">짜잔! ✨</div>
+    <p class="reveal r1" style="font-size:14px;margin-top:6px">진짜 숨겨진 보물은 바로…<br>
+      <b style="color:#b9770f;font-size:16px">네 머릿속에 꽉 찬 '과학 두뇌' 🧠</b> 였어!</p>
+    <div class="certCard reveal r2">
+      <div class="certTitle">✦ 과학 탐험가 인증서 ✦</div>
+      <div class="certName">${title}</div>
+      <div class="certStats">획득한 별 ⭐ <b>${totalStars()}</b> / 54 &nbsp;·&nbsp; 찾은 숨은 보물 💎 <b>${state.coins||0}</b></div>
+      <div class="secretCode reveal r3">🔑 비밀 코드: ${code}</div>
+    </div>
+    <p class="reveal r3" style="font-size:11.5px;color:#7d769a;margin-top:4px">이 화면을 캡처해서 친구·선생님께 자랑해 보세요! 📸</p>
+    <div class="mbtns" style="margin-top:14px">
+      <button class="mbtn ghost" onclick="showTreasure()">🔁 다시 열기</button>
+      <button class="mbtn primary" onclick="closeModal()">계속 탐험하기</button>
+    </div>`;
+  requestAnimationFrame(()=>{
+    $("tadaTxt").classList.add("go");
+    const r1=box.querySelector(".r1"), r2=box.querySelector(".r2"), r3=box.querySelectorAll(".r3");
+    setTimeout(()=>r1&&r1.classList.add("go"),350);
+    setTimeout(()=>r2&&r2.classList.add("go"),700);
+    setTimeout(()=>r3.forEach(e=>e.classList.add("go")),1050);
+  });
+}
+
+/* ===== 숨은 이스터에그(반짝이 ✦) ===== */
+function spawnEggs(){
+  document.querySelectorAll(".egg").forEach(e=>e.remove());
+  // 홈 화면에서만 생성
+  const pool = [...HOME_EGGS];
+  UNITS.forEach(u=>u.eggs.forEach(e=>pool.push(e)));
+  const spots=[
+    {l:"6%",t:"120px"},{l:"92%",t:"180px"},{l:"14%",t:"78%"},
+    {l:"88%",t:"70%"},{l:"48%",t:"92%"},{l:"70%",t:"26%"},
+  ];
+  spots.forEach((sp,i)=>{
+    const data=pool[i%pool.length];
+    const key=data.t;
+    const el=document.createElement("div");
+    el.className="egg"; el.textContent="✦";
+    el.style.left=sp.l; el.style.top=sp.t;
+    el.title="숨은 보물!";
+    el.onclick=(ev)=>{ ev.stopPropagation(); findEgg(key,data,el); };
+    document.body.appendChild(el);
+  });
+}
+function findEgg(key,data,el){
+  const isNew=!state.eggsFound[key];
+  if(isNew){ state.eggsFound[key]=true; state.coins=(state.coins||0)+1; save(); renderHeader(); }
+  el.style.transition=".4s"; el.style.transform="scale(0)"; el.style.opacity="0";
+  setTimeout(()=>el.remove(),400);
+  openModal(`
+    <div class="em">💎</div>
+    <h3>${isNew?"숨은 보물 발견!":"이미 찾은 보물"}</h3>
+    <p style="color:#b9770f;font-weight:700;margin-bottom:4px">${data.t}</p>
+    <p>${data.x}</p>
+    ${isNew?`<p style="margin-top:10px;color:#1f9d6b">💎 숨은 보물 +1 (총 ${state.coins})</p>`:""}
+    <div class="mbtns"><button class="mbtn primary" onclick="closeModal()">좋아!</button></div>
+  `);
+}
+
+/* ===== 이펙트 ===== */
+function confetti(n=24){
+  const em=["⭐","✨","🎉","💫","🌟"];
+  for(let i=0;i<n;i++){
+    const c=document.createElement("div"); c.className="confetti";
+    c.textContent=em[i%em.length]; c.style.left=Math.random()*100+"%";
+    c.style.animationDuration=(1.5+Math.random()*1.5)+"s"; c.style.fontSize=(14+Math.random()*16)+"px";
+    document.body.appendChild(c); setTimeout(()=>c.remove(),3200);
+  }
+}
+function bigConfetti(){ confetti(60); }
+
+/* ===== 초기화 ===== */
+function renderAll(){ renderHeader(); renderMap(); renderUnits(); spawnEggs(); }
+renderAll();
+</script>
+</body>
+</html>

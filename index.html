@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>과학이 신기해 - 중학 과학 게임 학습</title>
+<style>
+  :root {
+    --brand-1: #2fb17a;
+    --brand-2: #ff9f43;
+    --brand-3: #6c5ce7;
+    --text-main: #2d3436;
+    --text-sub: #636e72;
+    --bg-gradient: linear-gradient(135deg, #f5f7fb 0%, #e4e7eb 100%);
+  }
+  
+  * { box-sizing: border-box; }
+  
+  body {
+    font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+    background: var(--bg-gradient);
+    color: var(--text-main);
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  header {
+    text-align: center;
+    padding: 60px 20px 40px;
+  }
+
+  header h1 {
+    font-size: 3rem;
+    color: var(--text-main);
+    margin: 0 0 12px;
+    font-weight: 900;
+    letter-spacing: -1px;
+  }
+
+  header p {
+    font-size: 1.2rem;
+    color: var(--text-sub);
+    margin: 0;
+    font-weight: 500;
+  }
+
+  .container {
+    max-width: 1200px;
+    width: 100%;
+    padding: 0 20px 50px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 30px;
+  }
+
+  .card {
+    background: #ffffff;
+    border-radius: 32px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.04), 0 5px 15px rgba(0, 0, 0, 0.02);
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    display: flex;
+    flex-direction: column;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+  }
+
+  .card:hover {
+    transform: translateY(-12px);
+    box-shadow: 0 30px 50px rgba(0, 0, 0, 0.1);
+  }
+
+  .card-visual {
+    height: 200px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card-visual .emoji {
+    font-size: 5rem;
+    z-index: 2;
+    filter: drop-shadow(0 8px 10px rgba(0,0,0,0.15));
+    transition: transform 0.3s;
+  }
+
+  .card:hover .card-visual .emoji {
+    transform: scale(1.2) rotate(5deg);
+  }
+
+  .card-visual::before {
+    content: '';
+    position: absolute;
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    z-index: 1;
+  }
+
+  .grade-1 .card-visual { background: linear-gradient(135deg, #1dd1a1, #10ac84); }
+  .grade-2 .card-visual { background: linear-gradient(135deg, #ff9f43, #ee5253); }
+  .grade-3 .card-visual { background: linear-gradient(135deg, #a29bfe, #6c5ce7); }
+
+  .card-content {
+    padding: 30px 28px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+
+  .grade-tag {
+    display: inline-block;
+    color: white;
+    font-weight: 800;
+    font-size: 0.85rem;
+    padding: 6px 16px;
+    border-radius: 14px;
+    margin-bottom: 18px;
+    align-self: flex-start;
+    letter-spacing: 0.5px;
+  }
+
+  .card-title {
+    font-size: 1.6rem;
+    font-weight: 800;
+    margin: 0 0 22px;
+    color: var(--text-main);
+  }
+
+  .desc-section {
+    margin-bottom: 22px;
+  }
+
+  .desc-section h4 {
+    margin: 0 0 8px;
+    font-size: 1.1rem;
+    font-weight: 700;
+  }
+
+  .desc-section p {
+    margin: 0;
+    font-size: 0.98rem;
+    line-height: 1.65;
+    color: var(--text-sub);
+    word-break: keep-all;
+  }
+
+  .play-btn {
+    margin-top: auto;
+    text-align: center;
+    text-decoration: none;
+    font-weight: 800;
+    font-size: 1.1rem;
+    padding: 18px;
+    border-radius: 20px;
+    display: block;
+    transition: all 0.2s;
+    color: white;
+  }
+
+  .play-btn:active {
+    transform: scale(0.96);
+  }
+
+  .grade-1 .grade-tag { background: #0f9b74; }
+  .grade-1 .play-btn { background: linear-gradient(90deg, #1dd1a1, #10ac84); box-shadow: 0 6px 20px rgba(29, 209, 161, 0.4); }
+  .grade-1 .desc-section h4 { color: #10ac84; }
+
+  .grade-2 .grade-tag { background: #d97706; }
+  .grade-2 .play-btn { background: linear-gradient(90deg, #ff9f43, #ee5253); box-shadow: 0 6px 20px rgba(255, 159, 67, 0.4); }
+  .grade-2 .desc-section h4 { color: #ee5253; }
+
+  .grade-3 .grade-tag { background: #5b4cc4; }
+  .grade-3 .play-btn { background: linear-gradient(90deg, #a29bfe, #6c5ce7); box-shadow: 0 6px 20px rgba(108, 92, 231, 0.4); }
+  .grade-3 .desc-section h4 { color: var(--brand-3); }
+
+  footer {
+    width: 100%;
+    text-align: center;
+    padding: 40px 20px;
+    font-size: 0.95rem;
+    color: #a4b0be;
+    font-weight: 600;
+  }
+</style>
+</head>
+<body oncontextmenu="return false" onselectstart="return false" ondragstart="return false">
+
+  <header>
+    <h1>✨ 과학이 신기해</h1>
+    <p>중학교 1~3학년 과학 핵심 개념을 게임으로 재미있게 마스터하세요!</p>
+  </header>
+
+  <div class="container">
+    
+    <!-- 중1 게임 카드 -->
+    <div class="card grade-1">
+      <div class="card-visual">
+        <div class="emoji">🗺️</div>
+      </div>
+      <div class="card-content">
+        <span class="grade-tag">중학교 1학년</span>
+        <h3 class="card-title">과학탐험대 보물지도</h3>
+        <div class="desc-section">
+          <h4>📚 학습 내용 (전체 단원)</h4>
+          <p>지권의 변화, 여러 가지 힘, 기체의 성질, 물질의 상태 변화, 빛과 파동, 생물의 다양성, 과학과 나의 미래[cite: 1, 2]</p>
+        </div>
+        <div class="desc-section">
+          <h4>🎮 게임 방식</h4>
+          <p>탐험 지도를 따라가며 숨겨진 과학 퀴즈를 풉니다. 정답을 맞혀 숨겨진 보물을 찾고 다음 대륙으로 나아가는 흥미진진한 어드벤처 게임입니다.</p>
+        </div>
+        <a href="중1_과학탐험대_보물지도.html" class="play-btn">게임 시작하기</a>
+      </div>
+    </div>
+
+    <!-- 중2 게임 카드 -->
+    <div class="card grade-2">
+      <div class="card-visual">
+        <div class="emoji">🦖</div>
+      </div>
+      <div class="card-content">
+        <span class="grade-tag">중학교 2학년</span>
+        <h3 class="card-title">과학 공룡 진화기</h3>
+        <div class="desc-section">
+          <h4>📚 학습 내용 (전체 단원)</h4>
+          <p>물질의 구성, 전기와 자기, 태양계, 식물과 에너지, 동물과 에너지, 물질의 특성, 수권과 해수의 순환, 열과 우리 생활[cite: 2]</p>
+        </div>
+        <div class="desc-section">
+          <h4>🎮 게임 방식</h4>
+          <p>문제를 맞히면 경험치와 힘이 오르고 공룡이 진화합니다. 8개 단원을 정복해 전설의 알파 공룡을 만들어보세요[cite: 2]!</p>
+        </div>
+        <a href="중2_과학공룡진화기.html" class="play-btn">게임 시작하기</a>
+      </div>
+    </div>
+
+    <!-- 중3 게임 카드 -->
+    <div class="card grade-3">
+      <div class="card-visual">
+        <div class="emoji">⚛️</div>
+      </div>
+      <div class="card-content">
+        <span class="grade-tag">중학교 3학년</span>
+        <h3 class="card-title">과학 진화 카드 배틀</h3>
+        <div class="desc-section">
+          <h4>📚 학습 내용 (전체 단원)</h4>
+          <p>화학 반응의 규칙, 기권과 날씨, 운동과 에너지, 자극과 반응, 생식과 유전, 에너지 전환과 보존, 별과 우주[cite: 1]</p>
+        </div>
+        <div class="desc-section">
+          <h4>🎮 게임 방식</h4>
+          <p>단원별 퀴즈를 풀어 다양한 개념 카드를 획득합니다[cite: 1]. 카드를 조합해 보스를 소환하고 과학 마스터로 진화하세요[cite: 1]!</p>
+        </div>
+        <a href="중3_과학진화_카드게임.html" class="play-btn">게임 시작하기</a>
+      </div>
+    </div>
+
+  </div>
+
+  <footer>
+    All Rights Reserved (무단 전재 및 재배포 금지)
+  </footer>
+
+</body>
+</html>

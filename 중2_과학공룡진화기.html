@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>과학 공룡 진화기 — 중학 과학2</title>
+<style>
+  :root{
+    --ink:#20304a; --paper:#fffefb; --shadow:rgba(30,40,70,.18);
+    --good:#2fb17a; --bad:#e5604f; --gold:#f6b93b; --brand:#6c5ce7;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;height:100%;}
+  body{
+    font-family:'Pretendard','Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif;
+    color:var(--ink);
+    background:
+      radial-gradient(circle at 15% 12%, #ffe7a8 0, transparent 40%),
+      radial-gradient(circle at 85% 8%, #b8e6ff 0, transparent 42%),
+      linear-gradient(160deg,#eef4ff 0%,#f6eeff 55%,#fff2f6 100%);
+    min-height:100%;
+    display:flex; flex-direction:column; align-items:center;
+    padding:14px 12px 70px; overflow-x:hidden;
+  }
+  .wrap{width:100%; max-width:920px;}
+  .hidden{display:none !important;}
+
+  /* ===== 공통 ===== */
+  h1,h2,h3{margin:0;}
+  button{font-family:inherit; cursor:pointer; border:none;}
+  .btn{
+    background:var(--brand); color:#fff; font-weight:800; font-size:1.05rem;
+    padding:14px 26px; border-radius:16px; box-shadow:0 6px 0 #4834b8;
+    transition:transform .06s, box-shadow .06s; letter-spacing:-.02em;
+  }
+  .btn:active{transform:translateY(4px); box-shadow:0 2px 0 #4834b8;}
+  .btn.ghost{background:#fff; color:var(--brand); box-shadow:0 4px 0 #d9d2ff; border:2px solid #e4deff;}
+  .btn.small{padding:9px 16px; font-size:.9rem; border-radius:12px;}
+
+  .card{background:var(--paper); border-radius:24px; box-shadow:0 12px 30px var(--shadow); padding:22px;}
+
+  /* ===== 상단바 ===== */
+  .topbar{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px;}
+  .logo{display:flex; align-items:center; gap:8px; font-weight:900; font-size:1.15rem; letter-spacing:-.03em;}
+  .logo .dot{font-size:1.4rem;}
+  .toolbtns{display:flex; gap:8px;}
+  .iconbtn{background:#fff; border:2px solid #e6e2f5; border-radius:12px; padding:7px 11px; font-size:.85rem; font-weight:800; color:#5a4fd6; box-shadow:0 3px 0 #ded8f5;}
+  .iconbtn:active{transform:translateY(2px); box-shadow:0 1px 0 #ded8f5;}
+
+  /* ===== 시작 화면 ===== */
+  #screen-start{text-align:center; padding:34px 24px;}
+  #screen-start .titlebig{font-size:2.2rem; font-weight:900; letter-spacing:-.04em; line-height:1.15;}
+  #screen-start .titlebig .accent{color:var(--brand);}
+  #screen-start .sub{color:#66708a; margin:12px 0 20px; font-size:1.02rem; line-height:1.6;}
+  .heroegg{font-size:5.4rem; animation:bob 2.2s ease-in-out infinite;}
+  @keyframes bob{0%,100%{transform:translateY(0) rotate(-3deg)} 50%{transform:translateY(-14px) rotate(3deg)}}
+  .howto{text-align:left; background:#f6f3ff; border-radius:18px; padding:16px 18px; margin:20px auto 0; max-width:560px; font-size:.95rem; line-height:1.75;}
+  .howto b{color:var(--brand);}
+  .namebox{margin:18px 0 6px;}
+  .namebox input{font-family:inherit; font-size:1.05rem; font-weight:700; text-align:center; padding:12px 16px; border:2px solid #d9d2ff; border-radius:14px; width:230px; color:var(--ink);}
+  .startbtns{display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:16px;}
+
+  /* ===== 맵 화면 ===== */
+  .maphead{display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; flex-wrap:wrap; gap:10px;}
+  .maphead h2{font-size:1.5rem; letter-spacing:-.03em;}
+  .dinostrip{display:flex; align-items:center; gap:14px; background:var(--paper); border-radius:20px; padding:12px 16px; box-shadow:0 8px 22px var(--shadow); margin-bottom:16px;}
+  .dinostrip .mini{width:74px; height:74px; flex:0 0 auto;}
+  .dinostrip .info{flex:1; min-width:0;}
+  .dinostrip .dname{font-weight:900; font-size:1.15rem; letter-spacing:-.02em;}
+  .dinostrip .stage{display:inline-block; font-size:.78rem; font-weight:800; color:#fff; background:var(--brand); padding:2px 9px; border-radius:999px; margin-left:6px; vertical-align:middle;}
+  .statrow{display:flex; gap:14px; margin-top:8px; flex-wrap:wrap; font-size:.85rem; font-weight:700; color:#5a6480;}
+  .statrow .lvl{color:var(--gold);}
+  .expbar{height:12px; background:#eee7ff; border-radius:999px; overflow:hidden; margin-top:8px;}
+  .expbar > i{display:block; height:100%; width:0; background:linear-gradient(90deg,#8f7bff,#6c5ce7); border-radius:999px; transition:width .5s;}
+
+  .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:14px;}
+  .unit{position:relative; border-radius:20px; padding:18px; color:#fff; overflow:hidden; box-shadow:0 8px 20px var(--shadow); cursor:pointer; transition:transform .1s;}
+  .unit:active{transform:scale(.97);}
+  .unit .u-ico{font-size:2.2rem;}
+  .unit .u-no{font-size:.78rem; font-weight:800; opacity:.85; letter-spacing:.04em;}
+  .unit .u-title{font-size:1.15rem; font-weight:900; letter-spacing:-.03em; margin-top:2px; line-height:1.25;}
+  .unit .u-prog{margin-top:12px; font-size:.82rem; font-weight:700; opacity:.95;}
+  .unit .u-bar{height:8px; background:rgba(255,255,255,.35); border-radius:999px; margin-top:5px; overflow:hidden;}
+  .unit .u-bar > i{display:block; height:100%; background:#fff; width:0; border-radius:999px; transition:width .4s;}
+  .unit.locked{filter:grayscale(.6) brightness(.85); cursor:not-allowed;}
+  .unit .lockico{position:absolute; top:14px; right:14px; font-size:1.3rem;}
+  .unit .clearbadge{position:absolute; top:12px; right:12px; background:var(--gold); color:#5a3d00; font-weight:900; font-size:.72rem; padding:3px 9px; border-radius:999px;}
+
+  /* ===== 게임 화면 ===== */
+  #screen-game{}
+  .gamehead{display:flex; align-items:center; gap:10px; margin-bottom:12px;}
+  .gamehead .u-ico{font-size:1.6rem;}
+  .gamehead .g-title{font-weight:900; font-size:1.2rem; letter-spacing:-.03em;}
+  .gamehead .g-sub{font-size:.8rem; color:#6a7392; font-weight:700;}
+  .gamelayout{display:grid; grid-template-columns:300px 1fr; gap:16px; align-items:start;}
+  @media(max-width:720px){.gamelayout{grid-template-columns:1fr;}}
+
+  .dinopanel{background:var(--paper); border-radius:22px; box-shadow:0 10px 26px var(--shadow); padding:18px; text-align:center; position:sticky; top:10px;}
+  .dinostage{height:200px; display:flex; align-items:flex-end; justify-content:center; position:relative;}
+  .dinostage svg{transition:transform .55s cubic-bezier(.34,1.56,.64,1); filter:drop-shadow(0 8px 8px rgba(30,40,70,.18));}
+  .dinopanel .dname{font-weight:900; font-size:1.1rem; margin-top:6px;}
+  .dinopanel .stage{display:inline-block; font-size:.75rem; font-weight:800; color:#fff; background:var(--brand); padding:2px 10px; border-radius:999px; margin-top:4px;}
+  .statbox{margin-top:14px; text-align:left;}
+  .stat{margin-bottom:9px;}
+  .stat .lab{display:flex; justify-content:space-between; font-size:.8rem; font-weight:800; margin-bottom:3px;}
+  .stat .track{height:11px; background:#eef0f6; border-radius:999px; overflow:hidden;}
+  .stat .track > i{display:block; height:100%; border-radius:999px; transition:width .45s;}
+  .stat.int i{background:linear-gradient(90deg,#5aa9ff,#3d7bff);}
+  .stat.str i{background:linear-gradient(90deg,#ff9a6b,#ff6b6b);}
+  .stat.exp i{background:linear-gradient(90deg,#8f7bff,#6c5ce7);}
+  .missdots{margin-top:10px; font-size:.78rem; font-weight:800; color:#8a93ad;}
+  .missdots .heart{font-size:1rem;}
+
+  .qpanel{background:var(--paper); border-radius:22px; box-shadow:0 10px 26px var(--shadow); padding:22px; min-height:340px;}
+  .qmeta{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;}
+  .qmeta .diff{font-size:.8rem; font-weight:900; padding:4px 12px; border-radius:999px;}
+  .diff.d1{background:#e6f8ef; color:#1f9d6a;}
+  .diff.d2{background:#e8f0ff; color:#3d6fd6;}
+  .diff.d3{background:#f3e9ff; color:#8e4fe0;}
+  .qmeta .count{font-size:.82rem; font-weight:800; color:#8a93ad;}
+  .qtext{font-size:1.22rem; font-weight:800; line-height:1.5; letter-spacing:-.02em; margin-bottom:6px;}
+  .qflavor{font-size:.9rem; color:#7a83a0; font-weight:700; margin-bottom:16px;}
+  .choices{display:grid; gap:10px;}
+  .choice{
+    text-align:left; background:#f7f8fc; border:2px solid #e9ecf5; border-radius:14px;
+    padding:14px 16px; font-size:1.02rem; font-weight:700; color:var(--ink);
+    transition:transform .06s, border-color .1s, background .1s; display:flex; gap:10px; align-items:center;
+  }
+  .choice .key{flex:0 0 auto; width:26px; height:26px; border-radius:8px; background:#e4e7f2; color:#5a6480; font-weight:900; display:flex; align-items:center; justify-content:center; font-size:.9rem;}
+  .choice:hover{border-color:#c9cdfa;}
+  .choice:active{transform:scale(.98);}
+  .choice.correct{background:#e6f8ef; border-color:var(--good); color:#127a4e;}
+  .choice.correct .key{background:var(--good); color:#fff;}
+  .choice.wrong{background:#ffecea; border-color:var(--bad); color:#b23b2e;}
+  .choice.wrong .key{background:var(--bad); color:#fff;}
+  .choice:disabled{cursor:default;}
+  .feedbackline{margin-top:14px; font-weight:800; font-size:1rem; min-height:24px;}
+
+  /* ===== 보충학습 오버레이 ===== */
+  .overlay{position:fixed; inset:0; background:rgba(30,36,60,.55); backdrop-filter:blur(3px); display:flex; align-items:center; justify-content:center; padding:18px; z-index:50;}
+  .supp{background:#fff; border-radius:24px; max-width:480px; width:100%; padding:26px; box-shadow:0 20px 50px rgba(0,0,0,.3); text-align:center; animation:pop .3s;}
+  @keyframes pop{from{transform:scale(.85); opacity:0} to{transform:scale(1); opacity:1}}
+  .supp .bookico{font-size:3rem;}
+  .supp h3{font-size:1.35rem; margin:8px 0 4px; color:#e08a1f;}
+  .supp .concept{background:#fff8ea; border:2px dashed #f6cf7a; border-radius:16px; padding:16px 18px; margin:14px 0; font-size:1.02rem; line-height:1.65; text-align:left; font-weight:700;}
+  .supp .concept b{color:#d97706;}
+  .supp .cheer{color:#7a83a0; font-weight:700; font-size:.92rem; margin-bottom:16px;}
+
+  /* ===== 클리어 화면 ===== */
+  #screen-clear{text-align:center; padding:36px 24px;}
+  #screen-clear .crown{font-size:4.5rem; animation:bob 2s infinite;}
+  #screen-clear h2{font-size:1.9rem; letter-spacing:-.03em; margin:6px 0;}
+  #screen-clear .cdino{height:210px; display:flex; align-items:flex-end; justify-content:center;}
+  #screen-clear .rewardline{font-size:1.05rem; color:#5a6480; font-weight:700; line-height:1.7; margin:10px 0 20px;}
+
+  /* ===== 토스트 / 진화 연출 ===== */
+  #toast{position:fixed; top:20px; left:50%; transform:translateX(-50%) translateY(-120px); background:var(--brand); color:#fff; font-weight:900; padding:12px 22px; border-radius:16px; box-shadow:0 10px 24px rgba(0,0,0,.25); z-index:60; transition:transform .4s; font-size:1rem; text-align:center;}
+  #toast.show{transform:translateX(-50%) translateY(0);}
+  #toast.evo{background:linear-gradient(90deg,#f6b93b,#f78fb3);}
+
+  #confetti{position:fixed; inset:0; pointer-events:none; z-index:70;}
+  .conf{position:absolute; width:10px; height:14px; border-radius:2px; will-change:transform;}
+
+  .shake{animation:shake .4s;}
+  @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-9px)}40%{transform:translateX(8px)}60%{transform:translateX(-6px)}80%{transform:translateX(5px)}}
+  .grow{animation:growpulse .55s;}
+  @keyframes growpulse{0%{transform:scale(1)}45%{transform:scale(1.16)}100%{transform:scale(1)}}
+
+  /* ===== 저작권 푸터 ===== */
+  .copyfoot{position:fixed; bottom:0; left:0; right:0; text-align:center; font-size:.72rem; color:#9aa2b8; padding:8px 10px; background:linear-gradient(0deg,rgba(255,255,255,.9),rgba(255,255,255,0)); letter-spacing:.01em; font-weight:700;}
+</style>
+</head>
+<body oncontextmenu="return false" onselectstart="return false" ondragstart="return false">
+
+<div class="wrap">
+
+  <!-- 상단바 -->
+  <div class="topbar">
+    <div class="logo"><span class="dot">🦖</span><span>과학 공룡 진화기</span></div>
+    <div class="toolbtns">
+      <button class="iconbtn" id="btnSound">🔊 소리</button>
+      <button class="iconbtn" id="btnHome">🏠 지도</button>
+      <button class="iconbtn" id="btnReset">↻ 처음부터</button>
+    </div>
+  </div>
+
+  <!-- ===== 시작 화면 ===== -->
+  <div id="screen-start" class="card">
+    <div class="heroegg">🥚</div>
+    <div class="titlebig">알에서 깨어난 <span class="accent">과학 공룡</span>을<br>최강으로 진화시켜라!</div>
+    <div class="sub">중학교 과학2 8개 단원의 핵심 개념을 맞히면<br>내 공룡이 무럭무럭 자라고 <b>진화</b>합니다. 🦕→🦖</div>
+
+    <div class="namebox">
+      <input id="dinoName" type="text" maxlength="8" placeholder="공룡 이름 짓기" value="꼬마렉스">
+    </div>
+
+    <div class="howto">
+      🎮 <b>게임 방법</b><br>
+      ① 문제를 맞히면 <b>경험치·지능·힘</b>이 오르고 공룡이 <b>성장·진화</b>해요.<br>
+      ② 틀리면 <b>능력치가 줄고</b>, 실수가 쌓이면 공룡이 <b>다시 작아져요</b>.<br>
+      ③ 틀린 문제는 <b>보충학습</b>으로 핵심을 배우고, <b>다시 맞히면 복구</b>돼요.<br>
+      ④ 쉬운 단계는 재미있게, 위쪽 단계로 갈수록 <b>생각하는 문제</b>가 나와요.<br>
+      ⑤ 8개 단원을 모두 정복하면 <b>전설의 알파 공룡</b>이 됩니다! 👑
+    </div>
+
+    <div class="startbtns">
+      <button class="btn" id="btnNew">새로 시작하기</button>
+      <button class="btn ghost hidden" id="btnContinue">이어서 하기</button>
+    </div>
+  </div>
+
+  <!-- ===== 지도 화면 ===== -->
+  <div id="screen-map" class="hidden">
+    <div class="dinostrip">
+      <div class="mini" id="mapDino"></div>
+      <div class="info">
+        <div><span class="dname" id="mapName">꼬마렉스</span><span class="stage" id="mapStage">알</span></div>
+        <div class="statrow">
+          <span class="lvl">⭐ Lv.<span id="mapLvl">1</span></span>
+          <span>🧠 지능 <span id="mapInt">10</span></span>
+          <span>💪 힘 <span id="mapStr">10</span></span>
+        </div>
+        <div class="expbar"><i id="mapExp"></i></div>
+      </div>
+    </div>
+
+    <div class="maphead">
+      <h2>🗺️ 진화의 대륙</h2>
+      <span style="font-size:.85rem;color:#7a83a0;font-weight:700;">단원을 골라 공룡을 키우세요</span>
+    </div>
+    <div class="grid" id="unitGrid"></div>
+  </div>
+
+  <!-- ===== 게임 화면 ===== -->
+  <div id="screen-game" class="hidden">
+    <div class="gamehead">
+      <button class="iconbtn" id="btnBack">←</button>
+      <span class="u-ico" id="gIco">⚗️</span>
+      <div>
+        <div class="g-title" id="gTitle">단원</div>
+        <div class="g-sub" id="gSub">핵심 개념</div>
+      </div>
+    </div>
+
+    <div class="gamelayout">
+      <!-- 공룡 -->
+      <div class="dinopanel">
+        <div class="dinostage" id="dinoStage"></div>
+        <div class="dname" id="gName">꼬마렉스</div>
+        <div class="stage" id="gStageLbl">알</div>
+        <div class="statbox">
+          <div class="stat int"><div class="lab"><span>🧠 지능</span><span id="gIntV">10</span></div><div class="track"><i id="gIntBar"></i></div></div>
+          <div class="stat str"><div class="lab"><span>💪 힘</span><span id="gStrV">10</span></div><div class="track"><i id="gStrBar"></i></div></div>
+          <div class="stat exp"><div class="lab"><span>⭐ Lv.<span id="gLvl">1</span> 경험치</span><span id="gExpV"></span></div><div class="track"><i id="gExpBar"></i></div></div>
+        </div>
+        <div class="missdots" id="missDots"></div>
+      </div>
+
+      <!-- 문제 -->
+      <div class="qpanel">
+        <div class="qmeta">
+          <span class="diff d1" id="qDiff">난이도</span>
+          <span class="count" id="qCount">1 / 10</span>
+        </div>
+        <div class="qtext" id="qText">문제</div>
+        <div class="qflavor" id="qFlavor"></div>
+        <div class="choices" id="choices"></div>
+        <div class="feedbackline" id="feedback"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 클리어 화면 ===== -->
+  <div id="screen-clear" class="hidden card">
+    <div class="crown">🏆</div>
+    <h2 id="clearTitle">단원 정복!</h2>
+    <div class="cdino" id="clearDino"></div>
+    <div class="rewardline" id="clearReward"></div>
+    <button class="btn" id="btnClearNext">지도로 돌아가기</button>
+  </div>
+
+</div>
+
+<!-- 보충학습 오버레이 -->
+<div class="overlay hidden" id="overlaySupp">
+  <div class="supp">
+    <div class="bookico">📖</div>
+    <h3>보충학습 타임!</h3>
+    <div class="concept" id="suppConcept"></div>
+    <div class="cheer" id="suppCheer">천천히 읽고 다시 도전하면 꼭 맞힐 수 있어요! 💪</div>
+    <button class="btn" id="btnSuppRetry">다시 도전하기</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+<div id="confetti"></div>
+
+<div class="copyfoot">© 2026 과학 공룡 진화기 · All Rights Reserved (무단 전재 및 재배포 금지)</div>
+
+<script>
+/* =========================================================
+   데이터: 중학 과학2 8개 단원 (난이도 d: 1=기초·재미, 2=이해, 3=심화·사고력)
+   q:문제  c:보기  a:정답인덱스  exp:보충학습 핵심설명  f:재미요소 안내문
+========================================================= */
+const UNITS = [
+ { title:"물질의 구성", ico:"⚗️", theme:"linear-gradient(135deg,#7d5fff,#b06ab3)",
+   concept:"원소·원자·이온으로 세상 만들기",
+   q:[
+    {q:"더 이상 다른 물질로 분해되지 않는, 물질을 이루는 기본 성분을 무엇이라 할까요?",
+     c:["원소","분자","혼합물","화합물"],a:0,d:1,f:"🥚 아주 쉬운 첫 문제! 워밍업 가자~",
+     exp:"<b>원소</b>는 더 이상 다른 물질로 분해되지 않는 기본 성분이에요. 산소, 수소, 금처럼 물질을 이루는 '재료'랍니다."},
+    {q:"물을 전기 분해하면 생기는 두 가지 기체는 무엇일까요?",
+     c:["수소와 산소","질소와 산소","수소와 이산화탄소","산소와 이산화탄소"],a:0,d:1,f:"💧 물이 원소가 아니라는 증거!",
+     exp:"물(H₂O)을 전기 분해하면 <b>수소</b>와 <b>산소</b>로 나뉘어요. 나뉘므로 물은 원소가 아니라 화합물이에요."},
+    {q:"불꽃 반응에서 '노란색' 불꽃을 나타내는 원소는?",
+     c:["나트륨(Na)","칼륨(K)","구리(Cu)","리튬(Li)"],a:0,d:1,f:"🔥 불꽃놀이 색의 비밀!",
+     exp:"<b>나트륨</b>은 노란색, 칼륨은 보라색, 구리는 청록색 불꽃을 내요. 원소마다 고유한 불꽃색이 있답니다."},
+    {q:"물질을 이루는 가장 작은 입자로, 더 이상 쪼개지지 않는 알갱이는?",
+     c:["원자","세포","전자","이온"],a:0,d:2,
+     exp:"<b>원자</b>는 물질을 이루는 가장 작은 입자예요. 원자가 모여 분자를, 분자가 모여 물질을 만들어요."},
+    {q:"리튬과 스트론튬은 둘 다 붉은색 불꽃을 냅니다. 이 둘을 구별하려면 무엇을 관찰해야 할까요?",
+     c:["선 스펙트럼","질량","온도","냄새"],a:0,d:3,f:"🧠 사고력 도전! 불꽃색이 같을 땐?",
+     exp:"불꽃색이 비슷해도 <b>선 스펙트럼</b>(빛을 분광기로 본 밝은 선의 위치)은 원소마다 달라요. 그래서 스펙트럼으로 구별해요."},
+    {q:"원자의 중심에 있으며 (+)전하를 띠는 것은?",
+     c:["원자핵","전자","이온","분자"],a:0,d:2,
+     exp:"원자는 (+)전하의 <b>원자핵</b>과 그 주위를 도는 (−)전하의 전자로 이루어져 있어요."},
+    {q:"원자가 전자를 잃어 (+)전하를 띠게 된 입자를 무엇이라 할까요?",
+     c:["양이온","음이온","중성자","분자"],a:0,d:2,
+     exp:"전자를 <b>잃으면 (+)전하</b>인 양이온, 전자를 <b>얻으면 (−)전하</b>인 음이온이 돼요."},
+    {q:"산소를 나타내는 원소 기호는?",
+     c:["O","Os","Ox","On"],a:0,d:1,f:"✏️ 알파벳 첫 글자만 크게!",
+     exp:"산소의 원소 기호는 <b>O</b>(Oxygen). 첫 글자는 대문자로 써요. 수소는 H, 탄소는 C예요."},
+    {q:"염화 나트륨 수용액과 질산 은 수용액을 섞으면 흰색 앙금이 생깁니다. 이 앙금의 이름은?",
+     c:["염화 은","질산 나트륨","산화 은","염화 칼륨"],a:0,d:3,f:"🧠 이온이 만나면 앙금 탄생!",
+     exp:"은 이온(Ag⁺)과 염화 이온(Cl⁻)이 만나 <b>염화 은(AgCl)</b> 흰색 앙금이 생겨요. 이온끼리 결합해 가라앉는 거예요."},
+    {q:"나트륨 원자가 전자 1개를 잃고 이온이 될 때 만들어지는 것은?",
+     c:["나트륨 이온(Na⁺)","나트륨 이온(Na⁻)","염화 이온(Cl⁻)","산소 이온(O²⁻)"],a:0,d:3,
+     exp:"나트륨(Na)이 전자 1개를 잃으면 (+1)전하의 <b>나트륨 이온 Na⁺</b>가 돼요."},
+   ]},
+
+ { title:"전기와 자기", ico:"⚡", theme:"linear-gradient(135deg,#2193b0,#6dd5ed)",
+   concept:"전류·전압·저항과 자기장의 세계",
+   q:[
+    {q:"서로 다른 두 물체를 마찰할 때 생기는 전기를 무엇이라 할까요?",
+     c:["마찰 전기(정전기)","전류","전압","자기장"],a:0,d:1,f:"⚡ 겨울에 문고리 '따끔'의 정체!",
+     exp:"마찰하면 전자가 옮겨가 물체가 전기를 띠는데, 이것이 <b>마찰 전기(정전기)</b>예요."},
+    {q:"전하의 종류는 (+)전하와 무엇일까요?",
+     c:["(−)전하","(×)전하","중성 전하","자기 전하"],a:0,d:1,
+     exp:"전하에는 <b>(+)전하</b>와 <b>(−)전하</b> 두 종류가 있어요. 같은 종류는 밀고, 다른 종류는 끌어당겨요."},
+    {q:"같은 종류의 전하 사이에 작용하는 힘은?",
+     c:["밀어내는 힘(척력)","끌어당기는 힘(인력)","힘이 없다","마찰력"],a:0,d:2,
+     exp:"같은 전하끼리는 <b>밀어내고(척력)</b>, 다른 전하끼리는 끌어당겨요(인력)."},
+    {q:"전하(전기)의 흐름을 무엇이라 할까요?",
+     c:["전류","전압","저항","자기"],a:0,d:1,f:"🔋 물이 흐르듯 전기도 흘러요!",
+     exp:"<b>전류</b>는 전하의 흐름이에요. 단위는 암페어(A)를 써요."},
+    {q:"전류를 흐르게 하는 능력, 즉 전기적인 '압력'을 무엇이라 할까요?",
+     c:["전압","저항","전력","자기장"],a:0,d:2,
+     exp:"<b>전압</b>은 전류를 흐르게 하는 원인(전기적 압력)이에요. 단위는 볼트(V)."},
+    {q:"전류의 흐름을 방해하는 정도를 무엇이라 할까요?",
+     c:["저항","전압","전류","전하"],a:0,d:2,
+     exp:"<b>저항</b>은 전류의 흐름을 방해하는 정도예요. 단위는 옴(Ω). 저항이 크면 전류가 잘 안 흘러요."},
+    {q:"옴의 법칙에서 전압이 일정할 때, 저항이 커지면 전류의 세기는 어떻게 될까요?",
+     c:["작아진다","커진다","변화 없다","0이 된다"],a:0,d:3,f:"🧠 V = I × R 을 떠올려봐!",
+     exp:"옴의 법칙 I = V/R 에서 전압(V)이 같을 때 저항(R)이 커지면 전류(I)는 <b>작아져요</b>."},
+    {q:"저항이 2Ω인 도선에 4V의 전압을 걸면 흐르는 전류의 세기는?",
+     c:["2A","8A","0.5A","6A"],a:0,d:3,f:"🧠 계산 도전! I = V ÷ R",
+     exp:"I = V ÷ R = 4V ÷ 2Ω = <b>2A</b>. 전압을 저항으로 나누면 전류가 나와요."},
+    {q:"전류가 흐르는 도선 주위에 생기는 것은?",
+     c:["자기장","전기장","중력장","진공"],a:0,d:2,f:"🧲 전기와 자기는 친구!",
+     exp:"전류가 흐르면 도선 주위에 <b>자기장</b>이 생겨요. 나침반 바늘이 도선 옆에서 움직이는 이유죠."},
+    {q:"코일에 전류를 흘려 자석의 성질을 갖게 만든 장치는?",
+     c:["전자석","영구 자석","건전지","저항기"],a:0,d:2,
+     exp:"코일에 전류를 흘리면 자석이 되는 <b>전자석</b>이에요. 전류를 끊으면 자석 성질이 사라져요."},
+   ]},
+
+ { title:"태양계", ico:"🪐", theme:"linear-gradient(135deg,#30336b,#535c9e)",
+   concept:"지구·달의 운동과 태양계 탐험",
+   q:[
+    {q:"지구가 하루에 한 바퀴 스스로 도는 운동은?",
+     c:["자전","공전","자전과 공전","일주"],a:0,d:1,f:"🌍 하루 = 지구가 팽이처럼 도는 시간!",
+     exp:"<b>자전</b>은 지구가 스스로 하루에 한 바퀴 도는 운동이에요. 이 때문에 낮과 밤이 생겨요."},
+    {q:"지구가 태양 주위를 1년에 한 바퀴 도는 운동은?",
+     c:["공전","자전","위상","일식"],a:0,d:1,
+     exp:"<b>공전</b>은 지구가 태양 둘레를 1년에 한 바퀴 도는 운동이에요. 계절 변화의 원인이죠."},
+    {q:"달의 모양이 초승달→보름달→그믐달로 변하는 현상을 무엇이라 할까요?",
+     c:["달의 위상 변화","일식","월식","자전"],a:0,d:2,
+     exp:"달이 지구를 공전하며 햇빛 받는 면이 달라져 모양이 변하는 <b>위상 변화</b>가 나타나요."},
+    {q:"태양-달-지구가 일직선이 되어 '달이 태양을 가리는' 현상은?",
+     c:["일식","월식","위상","자전"],a:0,d:3,f:"🌑 낮에 태양이 사라진다면?",
+     exp:"<b>일식</b>은 달이 태양을 가리는 현상(순서: 태양-달-지구). 월식은 지구 그림자에 달이 들어가는 현상이에요."},
+    {q:"태양계에서 가장 큰 행성은?",
+     c:["목성","지구","화성","금성"],a:0,d:1,f:"🪐 태양계의 왕은 누구?",
+     exp:"<b>목성</b>이 태양계에서 가장 큰 행성이에요. 지구가 1000개 넘게 들어갈 만큼 커요."},
+    {q:"태양 표면에서 주변보다 온도가 낮아 어둡게 보이는 부분은?",
+     c:["흑점","홍염","코로나","백점"],a:0,d:2,f:"☀️ 태양에도 점이 있다?!",
+     exp:"<b>흑점</b>은 주변보다 온도가 낮아(약 4000℃) 어둡게 보이는 부분이에요."},
+    {q:"흑점의 위치가 날마다 조금씩 이동하는 것으로 알 수 있는 사실은?",
+     c:["태양도 자전한다","태양이 식고 있다","지구가 멈췄다","달이 커진다"],a:0,d:3,f:"🧠 관찰로 알아내는 과학!",
+     exp:"흑점이 규칙적으로 이동하는 것을 보고 <b>태양도 자전</b>한다는 것을 알 수 있어요."},
+    {q:"지구보다 안쪽에서 공전하는 수성·금성 같은 행성을 무엇이라 할까요?",
+     c:["내행성","외행성","위성","혜성"],a:0,d:2,
+     exp:"지구 궤도 안쪽을 도는 수성·금성은 <b>내행성</b>, 바깥쪽을 도는 화성·목성 등은 외행성이에요."},
+    {q:"태양 대기에서 붉은 불꽃처럼 솟아오르는 것은?",
+     c:["홍염","흑점","코로나","플레어"],a:0,d:2,
+     exp:"<b>홍염</b>은 태양 표면에서 붉은 불꽃 모양으로 솟아오르는 가스예요."},
+    {q:"목성형 행성과 지구형 행성 중, 크기가 크고 밀도가 작은 쪽은?",
+     c:["목성형 행성","지구형 행성","둘 다 같다","수성"],a:0,d:3,
+     exp:"<b>목성형 행성</b>(목성·토성 등)은 크지만 가스로 되어 있어 밀도가 작아요. 지구형은 작지만 단단해 밀도가 커요."},
+   ]},
+
+ { title:"식물과 에너지", ico:"🌿", theme:"linear-gradient(135deg,#11998e,#38ef7d)",
+   concept:"광합성으로 에너지를 만드는 식물",
+   q:[
+    {q:"식물이 빛을 이용해 스스로 양분을 만드는 과정은?",
+     c:["광합성","호흡","증산","소화"],a:0,d:1,f:"🌱 식물의 '요리 실력'!",
+     exp:"<b>광합성</b>은 식물이 빛 에너지로 물과 이산화 탄소를 이용해 양분(포도당)을 만드는 과정이에요."},
+    {q:"광합성이 일어나는, 세포 속 초록색 알갱이는?",
+     c:["엽록체","핵","기공","뿌리"],a:0,d:1,
+     exp:"<b>엽록체</b>는 잎 세포 속 초록색 알갱이로, 여기서 광합성이 일어나요. 초록색 색소가 빛을 흡수해요."},
+    {q:"광합성에 필요한 세 가지는 빛, 물, 그리고 무엇일까요?",
+     c:["이산화 탄소","산소","질소","소금"],a:0,d:2,f:"💨 우리가 내쉬는 그 기체!",
+     exp:"광합성에는 <b>빛·물·이산화 탄소</b>가 필요해요. 그 결과 양분(포도당)과 산소가 만들어져요."},
+    {q:"광합성 결과로 만들어져, 잎에 저장되는 양분(아이오딘 반응으로 확인)은?",
+     c:["녹말","단백질","지방","비타민"],a:0,d:2,
+     exp:"광합성으로 만든 포도당은 <b>녹말</b> 형태로 잎에 저장돼요. 아이오딘 용액을 떨어뜨리면 청람색으로 변해요."},
+    {q:"광합성 결과 발생하여, 우리가 숨 쉴 수 있게 해 주는 기체는?",
+     c:["산소","이산화 탄소","수소","질소"],a:0,d:1,f:"🫧 식물이 주는 선물!",
+     exp:"광합성으로 <b>산소</b>가 발생해요. 그래서 식물은 지구의 산소 공장이라 불려요."},
+    {q:"빛이 충분한 상태에서 빛의 세기를 계속 세게 하면 광합성량은 결국 어떻게 될까요?",
+     c:["더 이상 늘지 않고 일정해진다","계속 무한히 늘어난다","0이 된다","줄어든다"],a:0,d:3,f:"🧠 그래프 사고력 도전!",
+     exp:"어느 세기 이상에서는 이산화 탄소·온도 등 다른 조건의 한계 때문에 광합성량이 <b>더 늘지 않고 일정</b>해져요."},
+    {q:"잎의 뒷면에 많으며, 기체가 드나드는 작은 구멍은?",
+     c:["기공","엽록체","뿌리털","도관"],a:0,d:2,
+     exp:"<b>기공</b>은 잎 뒷면에 많은 작은 구멍으로, 이산화 탄소·산소·수증기가 드나들어요."},
+    {q:"식물 속 물이 수증기가 되어 잎의 기공으로 빠져나가는 작용은?",
+     c:["증산 작용","광합성","호흡","흡수"],a:0,d:2,
+     exp:"<b>증산 작용</b>은 물이 수증기로 잎에서 빠져나가는 것. 뿌리에서 물을 끌어올리고 식물의 온도를 낮춰요."},
+    {q:"식물이 양분을 분해해 살아가는 데 필요한 에너지를 얻는 과정은?",
+     c:["호흡","광합성","증산","발효"],a:0,d:2,f:"🌙 식물도 밤낮으로 숨 쉬어요!",
+     exp:"<b>호흡</b>은 양분을 분해해 에너지를 얻는 과정으로, 식물도 낮과 밤 모두 호흡을 해요."},
+    {q:"낮에 식물은 광합성과 호흡을 모두 하는데, 겉보기에는 어떤 기체를 내보내는 것처럼 보일까요?",
+     c:["산소","이산화 탄소","수소","질소"],a:0,d:3,f:"🧠 두 작용을 비교해 보자!",
+     exp:"낮에는 광합성량이 호흡량보다 많아서, 겉으로는 <b>산소</b>를 내보내는 것처럼 보여요."},
+   ]},
+
+ { title:"동물과 에너지", ico:"🫀", theme:"linear-gradient(135deg,#eb3349,#f45c43)",
+   concept:"소화·순환·호흡·배설로 살아가는 몸",
+   q:[
+    {q:"음식물 속 큰 영양소를 몸에 흡수되도록 작게 분해하는 과정은?",
+     c:["소화","호흡","순환","배설"],a:0,d:1,f:"🍔 먹은 게 어디로 갈까?",
+     exp:"<b>소화</b>는 큰 영양소를 흡수 가능한 작은 크기로 분해하는 과정이에요."},
+    {q:"3대 영양소는 탄수화물, 단백질, 그리고 무엇일까요?",
+     c:["지방","물","무기염류","비타민"],a:0,d:1,
+     exp:"에너지를 내는 3대 영양소는 <b>탄수화물·단백질·지방</b>이에요."},
+    {q:"입 안 침 속에 들어 있어 녹말을 분해하는 소화 효소는?",
+     c:["아밀레이스","라이페이스","펩신","인슐린"],a:0,d:2,f:"밥을 오래 씹으면 단맛! 그 이유는?",
+     exp:"침 속 <b>아밀레이스</b>가 녹말을 엿당으로 분해해요. 그래서 밥을 오래 씹으면 단맛이 나요."},
+    {q:"영양소가 흡수되는, 안쪽에 융털이 많은 소화 기관은?",
+     c:["소장","위","식도","큰창자"],a:0,d:2,
+     exp:"<b>소장</b> 안쪽의 융털이 표면적을 넓혀 영양소를 효율적으로 흡수해요."},
+    {q:"온몸으로 혈액을 내보내는 펌프 역할을 하는 기관은?",
+     c:["심장","폐","콩팥","간"],a:0,d:1,f:"❤️ 쿵쿵! 24시간 일하는 펌프!",
+     exp:"<b>심장</b>은 근육으로 이루어진 펌프로, 수축·이완하며 혈액을 온몸으로 보내요."},
+    {q:"혈액 속에서 산소를 운반하는 붉은 세포는?",
+     c:["적혈구","백혈구","혈소판","혈장"],a:0,d:2,
+     exp:"<b>적혈구</b>는 헤모글로빈이 들어 있어 산소를 운반해요. 백혈구는 세균과 싸워요."},
+    {q:"조직 세포와 물질(산소·이산화 탄소)을 주고받는, 벽이 한 겹인 가느다란 혈관은?",
+     c:["모세혈관","동맥","정맥","림프관"],a:0,d:3,f:"🧠 왜 벽이 얇아야 할까?",
+     exp:"<b>모세혈관</b>은 벽이 한 겹이라 세포와 물질 교환이 잘 일어나요. 동맥·정맥을 이어 줘요."},
+    {q:"오줌을 만들어 혈액 속 노폐물을 걸러 내는 기관은?",
+     c:["콩팥(신장)","심장","폐","위"],a:0,d:2,
+     exp:"<b>콩팥</b>은 혈액 속 노폐물을 걸러 오줌으로 내보내는 배설 기관이에요."},
+    {q:"세포 호흡으로 생긴 노폐물 암모니아가 '간'에서 바뀐, 오줌으로 나가는 물질은?",
+     c:["요소","포도당","단백질","녹말"],a:0,d:3,f:"🧠 몸속 화학공장 '간'의 활약!",
+     exp:"독성이 강한 암모니아를 간이 덜 해로운 <b>요소</b>로 바꿔, 콩팥에서 오줌으로 내보내요."},
+    {q:"폐는 스스로 움직이지 못합니다. 호흡할 때 폐를 돕는, 가슴과 배 사이의 근육질 막은?",
+     c:["횡격막","심장","갈비뼈","기관지"],a:0,d:3,
+     exp:"<b>횡격막</b>과 갈비뼈근육이 움직여 가슴 속 부피를 바꿔 숨을 들이쉬고 내쉬어요."},
+   ]},
+
+ { title:"물질의 특성", ico:"🧪", theme:"linear-gradient(135deg,#0083b0,#00b4db)",
+   concept:"밀도·용해도로 물질 구별하고 분리하기",
+   q:[
+    {q:"한 가지 물질로만 이루어진 물질을 무엇이라 할까요?",
+     c:["순물질","혼합물","화합물","용액"],a:0,d:1,f:"🧊 섞이지 않은 깨끗한 물질!",
+     exp:"<b>순물질</b>은 한 종류 물질로만 이루어져요(물, 소금, 산소). 여러 물질이 섞이면 혼합물이에요."},
+    {q:"두 가지 이상의 물질이 섞여 있는 것을 무엇이라 할까요?",
+     c:["혼합물","순물질","원소","원자"],a:0,d:1,
+     exp:"<b>혼합물</b>은 여러 물질이 성질을 유지한 채 섞인 것(소금물, 공기, 흙탕물)이에요."},
+    {q:"단위 부피당 질량으로, 물질마다 고유한 특성 값은?",
+     c:["밀도","무게","온도","부피"],a:0,d:2,f:"⚖️ 같은 크기라도 무게가 다른 이유!",
+     exp:"<b>밀도 = 질량 ÷ 부피</b>. 물질마다 고유한 값이라 물질을 구별하는 특성이 돼요."},
+    {q:"물에 뜨는 물체는 물보다 밀도가 어떠할까요?",
+     c:["작다","크다","같다","알 수 없다"],a:0,d:3,f:"🧠 얼음이 물에 뜨는 비밀!",
+     exp:"밀도가 물보다 <b>작으면 뜨고</b>, 크면 가라앉아요. 얼음은 물보다 밀도가 작아 떠요."},
+    {q:"어떤 온도에서 일정량의 물에 최대로 녹을 수 있는 물질의 양을 무엇이라 할까요?",
+     c:["용해도","밀도","끓는점","비열"],a:0,d:2,
+     exp:"<b>용해도</b>는 일정 온도에서 물 100g에 최대로 녹는 양이에요. 온도가 높을수록 대개 커져요."},
+    {q:"고체가 녹아 액체로 변하는 온도를 무엇이라 할까요?",
+     c:["녹는점","끓는점","어는점","이슬점"],a:0,d:1,
+     exp:"<b>녹는점</b>은 고체가 액체로 변하는 온도예요. 물질마다 고유해서 특성이 돼요."},
+    {q:"끓는점 차이를 이용해 액체 혼합물을 분리하는 방법은?",
+     c:["증류","여과","재결정","자석 분리"],a:0,d:3,f:"🧠 소주·향수를 만드는 원리!",
+     exp:"<b>증류</b>는 끓는점 차이를 이용해요. 먼저 끓는 성분을 기체로 만든 뒤 식혀 다시 액체로 모아요."},
+    {q:"물과 사인펜 색소처럼, 성분이 이동하는 속도 차이로 혼합물을 분리하는 방법은?",
+     c:["크로마토그래피","증류","여과","증발"],a:0,d:3,f:"🧠 도핑 검사에도 쓰는 방법!",
+     exp:"<b>크로마토그래피</b>는 성분마다 이동 속도가 달라 색이 번지며 분리돼요. 적은 양·복잡한 혼합물에 좋아요."},
+    {q:"소금물에서 순수한 물만 얻으려면 어떤 방법을 쓸까요?",
+     c:["증류(끓여 수증기를 식힘)","여과","재결정","자석"],a:0,d:2,
+     exp:"소금물을 끓이면 물만 수증기가 되고, 이를 식혀 모으면 순수한 물을 얻어요(<b>증류</b>)."},
+    {q:"온도에 따른 용해도 차이를 이용해 순수한 고체 결정을 얻는 방법은?",
+     c:["재결정","증류","여과","연소"],a:0,d:3,
+     exp:"<b>재결정</b>은 뜨거운 물에 녹인 뒤 식히면 용해도가 줄어 순수한 결정이 다시 생기는 원리예요."},
+   ]},
+
+ { title:"수권과 해수의 순환", ico:"🌊", theme:"linear-gradient(135deg,#1a2980,#26d0ce)",
+   concept:"바닷물의 성질과 바다의 움직임",
+   q:[
+    {q:"지구의 물 중 가장 많은 양을 차지하는 것은?",
+     c:["해수(바닷물)","빙하","지하수","강물"],a:0,d:1,f:"🌍 지구는 '물의 행성'!",
+     exp:"지구 물의 약 97%가 <b>해수(바닷물)</b>예요. 우리가 쓰는 담수는 아주 적은 양이랍니다."},
+    {q:"바로 이용하기 쉬운 담수에 해당하는 것은?",
+     c:["하천수·지하수","해수","빙하","수증기"],a:0,d:2,f:"❄️ 빙하는 꽝꽝 얼어 못 써요!",
+     exp:"담수의 대부분은 빙하라 바로 쓰기 어렵고, 실제로는 <b>하천수·지하수</b>를 주로 이용해요."},
+    {q:"해수의 깊이에 따른 수온 분포에서, 바람의 영향으로 수온이 거의 일정한 표층은?",
+     c:["혼합층","수온약층","심해층","한류층"],a:0,d:3,f:"🧠 바다의 3층 구조 도전!",
+     exp:"<b>혼합층</b>은 바람이 물을 섞어 수온이 일정해요. 그 아래 수온약층(급감), 심해층(저온) 순서예요."},
+    {q:"바닷물 1000g에 녹아 있는 염류의 총량(g)을 무엇이라 할까요?",
+     c:["염분","밀도","용해도","비열"],a:0,d:2,
+     exp:"<b>염분</b>은 바닷물 1000g 속 염류의 총 g수예요. 단위는 psu(또는 ‰)를 써요."},
+    {q:"지역마다 염분은 달라도, 녹아 있는 염류들 사이의 '비율'은 어디서나 일정하다는 법칙은?",
+     c:["염분비 일정 법칙","용해도 법칙","옴의 법칙","질량 보존 법칙"],a:0,d:3,f:"🧠 바다는 어디든 성분비가 같다!",
+     exp:"<b>염분비 일정 법칙</b>: 염분 값은 지역마다 달라도, 염류들의 상대적 비율은 어느 바다든 일정해요."},
+    {q:"일정한 방향으로 흐르는 바닷물의 흐름을 무엇이라 할까요?",
+     c:["해류","조류","파도","밀물"],a:0,d:1,
+     exp:"<b>해류</b>는 일정한 방향으로 흐르는 바닷물이에요. 따뜻한 난류와 차가운 한류가 있어요."},
+    {q:"저위도(적도 쪽)에서 고위도로 흐르는 따뜻한 해류는?",
+     c:["난류","한류","조류","심층류"],a:0,d:2,f:"🔥 따뜻한 바닷물의 여행!",
+     exp:"<b>난류</b>는 저위도에서 고위도로 흐르는 따뜻한 해류, <b>한류</b>는 반대로 차가운 해류예요."},
+    {q:"밀물과 썰물로 하루 동안 해수면이 오르내리는 현상을 무엇이라 할까요?",
+     c:["조석","해류","파도","증발"],a:0,d:2,
+     exp:"<b>조석</b>은 달·태양의 인력으로 해수면이 규칙적으로 오르내리는 현상이에요."},
+    {q:"하루 중 해수면이 가장 높아진 때를 무엇이라 할까요?",
+     c:["만조","간조","사리","조금"],a:0,d:2,
+     exp:"해수면이 가장 높을 때가 <b>만조</b>, 가장 낮을 때가 간조예요."},
+    {q:"한 달 중 밀물과 썰물의 차이(조차)가 가장 크게 나타나는 때는?",
+     c:["사리","조금","만조","간조"],a:0,d:3,f:"🧠 갯벌 체험 최고의 날은?",
+     exp:"<b>사리</b>는 조차가 가장 큰 때(보름·그믐), <b>조금</b>은 조차가 가장 작은 때예요."},
+   ]},
+
+ { title:"열과 우리생활", ico:"🔥", theme:"linear-gradient(135deg,#f7971e,#ffd200)",
+   concept:"온도·열의 이동과 열평형",
+   q:[
+    {q:"물체의 차갑고 뜨거운 정도를 숫자로 나타낸 것은?",
+     c:["온도","열량","비열","무게"],a:0,d:1,f:"🌡️ 체온계가 알려주는 그 숫자!",
+     exp:"<b>온도</b>는 물체의 차갑고 뜨거운 정도를 숫자로 나타낸 것으로, 입자 운동이 활발할수록 높아요."},
+    {q:"고체에서 입자의 진동이 이웃 입자로 차례로 전달되어 열이 이동하는 방법은?",
+     c:["전도","대류","복사","단열"],a:0,d:2,f:"🥄 뜨거운 국에 담근 숟가락!",
+     exp:"<b>전도</b>는 고체에서 입자 진동이 옆으로 전달돼 열이 이동하는 방법이에요."},
+    {q:"액체나 기체에서 데워진 물질이 직접 위아래로 이동하며 열을 전달하는 방법은?",
+     c:["대류","전도","복사","반사"],a:0,d:2,f:"♨️ 주전자 속 물이 도는 이유!",
+     exp:"<b>대류</b>는 데워진 물질이 가벼워져 올라가고 찬 물질이 내려오며 순환해 열이 전달돼요."},
+    {q:"물질의 도움 없이(진공에서도) 열이 직접 전달되는 방법은? (예: 태양열)",
+     c:["복사","전도","대류","증발"],a:0,d:3,f:"🧠 우주는 진공인데 왜 태양은 따뜻할까?",
+     exp:"<b>복사</b>는 물질 없이도 열이 직접 전달돼요. 그래서 진공인 우주를 지나 태양열이 지구에 닿아요."},
+    {q:"뜨거운 물과 찬물을 섞어 두면, 시간이 지나 온도가 같아지는 상태를 무엇이라 할까요?",
+     c:["열평형","단열","대류","복사"],a:0,d:2,f:"⚖️ 결국 사이좋게 같은 온도!",
+     exp:"<b>열평형</b>은 두 물체의 온도가 같아져 열 이동이 멈춘 상태예요. 열은 고온→저온으로만 이동해요."},
+    {q:"열은 항상 어느 쪽으로 이동할까요?",
+     c:["온도 높은 곳 → 낮은 곳","온도 낮은 곳 → 높은 곳","양쪽 똑같이","이동하지 않는다"],a:0,d:3,f:"🧠 방향이 정해져 있다!",
+     exp:"열은 언제나 <b>온도가 높은 곳에서 낮은 곳으로</b> 이동해요. 반대로는 저절로 흐르지 않아요."},
+    {q:"어떤 물질 1kg의 온도를 1℃ 높이는 데 필요한 열량을 무엇이라 할까요?",
+     c:["비열","온도","밀도","열평형"],a:0,d:3,f:"🧠 물이 잘 안 데워지는 이유!",
+     exp:"<b>비열</b>은 물질 1kg의 온도를 1℃ 높이는 데 드는 열량이에요. 물은 비열이 커서 온도가 잘 안 변해요."},
+    {q:"온도가 높아지면 물질의 부피가 늘어나는 현상을 무엇이라 할까요?",
+     c:["열팽창","열평형","단열","증발"],a:0,d:2,
+     exp:"<b>열팽창</b>은 온도가 오르면 입자 운동이 활발해져 부피가 늘어나는 현상이에요."},
+    {q:"여름철 기차 철로나 다리에 '틈'을 두는 까닭은 무엇 때문일까요?",
+     c:["열팽창","마찰","중력","전기"],a:0,d:3,f:"🧠 생활 속 과학 찾기!",
+     exp:"더우면 금속이 <b>열팽창</b>해 늘어나요. 틈이 없으면 휘거나 부러지므로 미리 틈을 만들어 둬요."},
+    {q:"겨울에 옷을 껴입으면 따뜻한 까닭은, 옷 사이 공기가 무엇을 잘 못하기 때문일까요?",
+     c:["열을 잘 전달하지 못함(단열)","전기를 통함","물을 흡수함","빛을 반사함"],a:0,d:2,f:"🧥 공기가 이불이 되어 준다!",
+     exp:"공기는 열을 잘 전달하지 못해서(<b>단열</b>) 옷 사이 공기층이 몸의 열을 지켜 줘요."},
+   ]},
+];
+
+/* ===== 공룡 SVG (진화 6단계) ===== */
+function dinoSVG(stage){
+  const S = {
+    0:`<svg viewBox="0 0 200 200" width="130" height="130"><ellipse cx="100" cy="118" rx="52" ry="66" fill="#fdf3d8" stroke="#e6c079" stroke-width="5"/><ellipse cx="82" cy="95" rx="9" ry="12" fill="#f3e2b0"/><ellipse cx="118" cy="128" rx="11" ry="9" fill="#f3e2b0"/><path d="M70 80 L88 92 L74 104 L92 116 L78 128" fill="none" stroke="#d9a441" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/><circle cx="118" cy="96" r="4" fill="#caa14e"/></svg>`,
+    1:`<svg viewBox="0 0 200 200" width="120" height="120"><ellipse cx="100" cy="150" rx="46" ry="16" fill="rgba(0,0,0,.08)"/><path d="M150 140 Q182 132 176 108 Q168 120 150 118Z" fill="#7ed957"/><ellipse cx="100" cy="118" rx="52" ry="48" fill="#8fe06a"/><ellipse cx="118" cy="150" rx="12" ry="16" fill="#7ed957"/><ellipse cx="82" cy="150" rx="12" ry="16" fill="#7ed957"/><circle cx="86" cy="106" r="9" fill="#fff"/><circle cx="88" cy="108" r="5" fill="#2b2b2b"/><circle cx="120" cy="106" r="9" fill="#fff"/><circle cx="122" cy="108" r="5" fill="#2b2b2b"/><path d="M96 128 Q103 134 110 128" fill="none" stroke="#3a7d2c" stroke-width="3" stroke-linecap="round"/><circle cx="74" cy="120" r="6" fill="#ffb3c1" opacity=".7"/><circle cx="130" cy="120" r="6" fill="#ffb3c1" opacity=".7"/></svg>`,
+    2:`<svg viewBox="0 0 200 200" width="130" height="130"><ellipse cx="100" cy="172" rx="52" ry="14" fill="rgba(0,0,0,.08)"/><path d="M150 150 Q190 150 184 116 Q172 132 150 128Z" fill="#4fc3a1"/><path d="M78 78 l10 -16 l10 16Z M96 74 l11 -18 l11 18Z M116 78 l10 -16 l10 16Z" fill="#2fa789"/><ellipse cx="100" cy="118" rx="50" ry="54" fill="#5fd3b0"/><ellipse cx="112" cy="168" rx="13" ry="14" fill="#4fc3a1"/><ellipse cx="84" cy="168" rx="13" ry="14" fill="#4fc3a1"/><ellipse cx="100" cy="104" rx="40" ry="34" fill="#7ee0c4"/><circle cx="84" cy="102" r="10" fill="#fff"/><circle cx="86" cy="104" r="5.5" fill="#222"/><circle cx="122" cy="102" r="10" fill="#fff"/><circle cx="124" cy="104" r="5.5" fill="#222"/><path d="M92 124 Q103 132 114 124" fill="none" stroke="#2f7d68" stroke-width="3.5" stroke-linecap="round"/></svg>`,
+    3:`<svg viewBox="0 0 200 200" width="145" height="145"><ellipse cx="100" cy="176" rx="56" ry="14" fill="rgba(0,0,0,.09)"/><path d="M148 150 Q198 148 196 108 Q178 128 150 126Z" fill="#3aa0e0"/><path d="M70 72 l11 -20 l11 20Z M90 66 l12 -22 l12 22Z M112 72 l11 -20 l11 20Z" fill="#2b7fc4"/><ellipse cx="100" cy="120" rx="52" ry="58" fill="#4aa8e6"/><ellipse cx="60" cy="128" rx="10" ry="20" fill="#3f97d6"/><ellipse cx="140" cy="128" rx="10" ry="20" fill="#3f97d6"/><ellipse cx="114" cy="172" rx="14" ry="15" fill="#3f97d6"/><ellipse cx="86" cy="172" rx="14" ry="15" fill="#3f97d6"/><ellipse cx="100" cy="102" rx="42" ry="36" fill="#7cc6f0"/><circle cx="82" cy="100" r="11" fill="#fff"/><circle cx="85" cy="102" r="6" fill="#1a1a1a"/><circle cx="122" cy="100" r="11" fill="#fff"/><circle cx="125" cy="102" r="6" fill="#1a1a1a"/><path d="M88 126 Q103 136 118 126" fill="none" stroke="#22608f" stroke-width="4" stroke-linecap="round"/></svg>`,
+    4:`<svg viewBox="0 0 200 200" width="160" height="160"><ellipse cx="100" cy="182" rx="60" ry="14" fill="rgba(0,0,0,.1)"/><path d="M146 152 Q200 150 200 104 Q178 128 148 126Z" fill="#8a5cd6"/><path d="M64 66 l12 -24 l12 24Z M86 58 l13 -26 l13 26Z M110 66 l12 -24 l12 24Z" fill="#6f3fc4"/><ellipse cx="100" cy="122" rx="56" ry="62" fill="#9b6ee0"/><ellipse cx="56" cy="128" rx="11" ry="24" fill="#8a5cd6"/><ellipse cx="144" cy="128" rx="11" ry="24" fill="#8a5cd6"/><ellipse cx="116" cy="178" rx="16" ry="16" fill="#8a5cd6"/><ellipse cx="84" cy="178" rx="16" ry="16" fill="#8a5cd6"/><ellipse cx="100" cy="100" rx="46" ry="40" fill="#c1a0f0"/><path d="M74 66 q6 8 0 16 M126 66 q-6 8 0 16" stroke="#6f3fc4" stroke-width="5" fill="none" stroke-linecap="round"/><circle cx="80" cy="98" r="12" fill="#fff"/><circle cx="84" cy="100" r="6.5" fill="#111"/><circle cx="122" cy="98" r="12" fill="#fff"/><circle cx="126" cy="100" r="6.5" fill="#111"/><path d="M86 126 Q101 138 118 126" fill="none" stroke="#4d2a8a" stroke-width="4.5" stroke-linecap="round"/><path d="M92 132 l4 6 M108 132 l-4 6" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg>`,
+    5:`<svg viewBox="0 0 200 200" width="175" height="175"><defs><radialGradient id="aura" cx="50%" cy="45%" r="55%"><stop offset="0%" stop-color="#fff4c2" stop-opacity=".9"/><stop offset="70%" stop-color="#ffd86b" stop-opacity=".35"/><stop offset="100%" stop-color="#ffd86b" stop-opacity="0"/></radialGradient></defs><circle cx="100" cy="105" r="95" fill="url(#aura)"/><ellipse cx="100" cy="184" rx="60" ry="13" fill="rgba(0,0,0,.1)"/><path d="M146 152 Q202 150 202 102 Q180 128 148 126Z" fill="#f2a93b"/><path d="M62 62 l12 -26 l12 26Z M86 52 l14 -28 l14 28Z M112 62 l12 -26 l12 26Z" fill="#e0902a"/><ellipse cx="100" cy="122" rx="57" ry="63" fill="#ffc04d"/><ellipse cx="55" cy="128" rx="11" ry="25" fill="#f2a93b"/><ellipse cx="145" cy="128" rx="11" ry="25" fill="#f2a93b"/><ellipse cx="116" cy="180" rx="16" ry="16" fill="#f2a93b"/><ellipse cx="84" cy="180" rx="16" ry="16" fill="#f2a93b"/><ellipse cx="100" cy="98" rx="47" ry="41" fill="#ffe08a"/><path d="M72 52 l8 -22 l7 16 l8 -20 l7 22 l8 -16 l6 20" fill="#ffd24d" stroke="#e0902a" stroke-width="3" stroke-linejoin="round"/><circle cx="80" cy="98" r="12" fill="#fff"/><circle cx="84" cy="100" r="6.5" fill="#5a3d00"/><circle cx="122" cy="98" r="12" fill="#fff"/><circle cx="126" cy="100" r="6.5" fill="#5a3d00"/><path d="M86 126 Q101 140 118 126" fill="none" stroke="#a05a00" stroke-width="5" stroke-linecap="round"/><text x="150" y="60" font-size="20">✨</text><text x="34" y="88" font-size="16">✨</text></svg>`
+  };
+  return S[stage] || S[0];
+}
+const STAGE_NAMES = ["알","아기 공룡","새끼 공룡","청년 공룡","성체 공룡","알파 공룡 👑"];
+function stageOf(level){
+  if(level<3) return 0; if(level<6) return 1; if(level<10) return 2;
+  if(level<14) return 3; if(level<19) return 4; return 5;
+}
+function stageStartLevel(s){ return [1,3,6,10,14,19][s]; }
+function dinoScale(level){
+  const s=stageOf(level); const base=[.85,.85,.9,.95,1,1.05][s];
+  return base + (level - stageStartLevel(s))*0.03;
+}
+
+/* ===== 상태 ===== */
+const SAVE_KEY = "dinoScienceSave_v1";
+let st = null;
+function freshState(name){
+  return { name:name||"꼬마렉스", level:1, exp:0, int:10, str:10,
+    missStreak:0, pendingRecovery:false,
+    unlocked:1, cleared:[], progress:{} }; // progress[unitIdx] = [correct question indices]
+}
+function save(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify(st)); }catch(e){} }
+function load(){ try{ return JSON.parse(localStorage.getItem(SAVE_KEY)); }catch(e){ return null; } }
+
+/* ===== 사운드 (WebAudio, 외부 파일 없음) ===== */
+let soundOn=true, actx=null;
+function beep(freqs, dur=0.12, type="sine", gap=0.09){
+  if(!soundOn) return;
+  try{
+    actx = actx || new (window.AudioContext||window.webkitAudioContext)();
+    let t=actx.currentTime;
+    freqs.forEach(f=>{
+      const o=actx.createOscillator(), g=actx.createGain();
+      o.type=type; o.frequency.value=f; o.connect(g); g.connect(actx.destination);
+      g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.18,t+0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+      o.start(t); o.stop(t+dur); t+=gap;
+    });
+  }catch(e){}
+}
+const sndCorrect=()=>beep([660,880],0.13,"sine");
+const sndWrong  =()=>beep([200,150],0.22,"square",0.11);
+const sndLevel  =()=>beep([523,659,784,1047],0.14,"triangle");
+const sndEvo    =()=>beep([523,659,784,1047,1319],0.16,"sine");
+
+/* ===== 화면 전환 ===== */
+const screens = ["screen-start","screen-map","screen-game","screen-clear"];
+function show(id){ screens.forEach(s=>document.getElementById(s).classList.toggle("hidden", s!==id)); window.scrollTo(0,0); }
+
+/* ===== 지도 렌더 ===== */
+function renderMap(){
+  document.getElementById("mapDino").innerHTML = scaledDino(st.level, 74);
+  document.getElementById("mapName").textContent = st.name;
+  document.getElementById("mapStage").textContent = STAGE_NAMES[stageOf(st.level)];
+  document.getElementById("mapLvl").textContent = st.level;
+  document.getElementById("mapInt").textContent = st.int;
+  document.getElementById("mapStr").textContent = st.str;
+  document.getElementById("mapExp").style.width = Math.round(st.exp/expCap(st.level)*100)+"%";
+
+  const grid = document.getElementById("unitGrid");
+  grid.innerHTML="";
+  UNITS.forEach((u,i)=>{
+    const total=u.q.length;
+    const done=(st.progress[i]||[]).length;
+    const cleared = st.cleared.includes(i);
+    const el=document.createElement("div");
+    el.className="unit";
+    el.style.background=u.theme;
+    el.innerHTML =
+      (cleared?`<div class="clearbadge">✔ 정복</div>`:"")+
+      `<div class="u-ico">${u.ico}</div>
+       <div class="u-no">${i+1}단원</div>
+       <div class="u-title">${u.title}</div>
+       <div class="u-prog">${done} / ${total} 개념</div>
+       <div class="u-bar"><i style="width:${Math.round(done/total*100)}%"></i></div>`;
+    el.onclick=()=>startUnit(i);
+    grid.appendChild(el);
+  });
+}
+function scaledDino(level, box){
+  return `<div style="transform:scale(${Math.min(1,dinoScale(level))});transform-origin:bottom center">${dinoSVG(stageOf(level))}</div>`;
+}
+
+/* ===== 게임 진행 ===== */
+let cur = { unit:0, order:[], pos:0, locked:false };
+function expCap(level){ return 40 + level*6; }
+
+function startUnit(idx){
+  cur.unit=idx; cur.pos=0; cur.locked=false;
+  const u=UNITS[idx];
+  cur.order = u.q.map((_,i)=>i).sort((a,b)=>u.q[a].d-u.q[b].d); // 쉬움→어려움
+  document.getElementById("gIco").textContent=u.ico;
+  document.getElementById("gTitle").textContent=(idx+1)+"단원 · "+u.title;
+  document.getElementById("gSub").textContent=u.concept;
+  show("screen-game");
+  renderDinoPanel();
+  nextQuestion();
+}
+
+function renderDinoPanel(){
+  const stg=stageOf(st.level);
+  const el=document.getElementById("dinoStage");
+  el.innerHTML=`<div style="transform:scale(${dinoScale(st.level)});transform-origin:bottom center">${dinoSVG(stg)}</div>`;
+  document.getElementById("gName").textContent=st.name;
+  document.getElementById("gStageLbl").textContent=STAGE_NAMES[stg];
+  document.getElementById("gLvl").textContent=st.level;
+  document.getElementById("gIntV").textContent=st.int;
+  document.getElementById("gStrV").textContent=st.str;
+  document.getElementById("gIntBar").style.width=Math.min(100,st.int)+"%";
+  document.getElementById("gStrBar").style.width=Math.min(100,st.str)+"%";
+  document.getElementById("gExpV").textContent=st.exp+" / "+expCap(st.level);
+  document.getElementById("gExpBar").style.width=Math.round(st.exp/expCap(st.level)*100)+"%";
+  const dots=document.getElementById("missDots");
+  let h="실수 게이지: ";
+  for(let i=0;i<3;i++) h+=`<span class="heart">${i<st.missStreak?"💔":"💛"}</span>`;
+  if(st.pendingRecovery) h+=' &nbsp;<span style="color:#e5604f">⚠ 다시 맞혀서 복구하기!</span>';
+  dots.innerHTML=h;
+}
+
+function nextQuestion(){
+  const u=UNITS[cur.unit];
+  // 이미 맞힌 문제는 건너뛰고, 남은 문제 중 진행
+  const doneSet=new Set(st.progress[cur.unit]||[]);
+  while(cur.pos<cur.order.length && doneSet.has(cur.order[cur.pos])) cur.pos++;
+  if(cur.pos>=cur.order.length){ unitClear(); return; }
+  renderQuestion(u.q[cur.order[cur.pos]]);
+}
+
+function renderQuestion(qq){
+  cur.locked=false;
+  const u=UNITS[cur.unit];
+  const total=u.q.length, done=(st.progress[cur.unit]||[]).length;
+  document.getElementById("qCount").textContent=(done+1)+" / "+total;
+  const dEl=document.getElementById("qDiff");
+  dEl.className="diff d"+qq.d;
+  dEl.textContent=qq.d===1?"⭐ 기초":qq.d===2?"⭐⭐ 이해":"🧠 사고력";
+  document.getElementById("qText").textContent=qq.q;
+  document.getElementById("qFlavor").textContent=qq.f||"";
+  document.getElementById("feedback").textContent="";
+  document.getElementById("feedback").style.color="";
+
+  // 보기 셔플
+  const idxs=qq.c.map((_,i)=>i).sort(()=>Math.random()-0.5);
+  const box=document.getElementById("choices"); box.innerHTML="";
+  const keys=["A","B","C","D"];
+  idxs.forEach((ci,pos)=>{
+    const b=document.createElement("button");
+    b.className="choice";
+    b.innerHTML=`<span class="key">${keys[pos]}</span><span>${qq.c[ci]}</span>`;
+    b.onclick=()=>answer(ci,qq,b);
+    box.appendChild(b);
+  });
+}
+
+function answer(choiceIdx, qq, btnEl){
+  if(cur.locked) return; cur.locked=true;
+  const correct = choiceIdx===qq.a;
+  const buttons=[...document.querySelectorAll("#choices .choice")];
+  buttons.forEach(b=>b.disabled=true);
+
+  if(correct){
+    btnEl.classList.add("correct");
+    onCorrect(qq);
+  } else {
+    btnEl.classList.add("wrong");
+    // 정답 표시
+    buttons.forEach(b=>{ if(b.querySelector("span:last-child").textContent===qq.c[qq.a]) b.classList.add("correct"); });
+    onWrong(qq);
+  }
+}
+
+function onCorrect(qq){
+  sndCorrect();
+  const fb=document.getElementById("feedback");
+  const stg=stageOf(st.level);
+  const cheersLow=["정답! 우와~ 공룡이 신났어요! 🎉","딩동댕! 잘했어요! 🦕","맞았어요! 무럭무럭! 🌟"];
+  const cheersHigh=["정확한 추론이에요! 🧠✨","훌륭한 사고력! 상위권 공룡답네요! 👑","완벽한 분석! 지적 진화 중! 🔬"];
+  fb.style.color="#2fb17a";
+  fb.textContent = qq.d>=3 ? cheersHigh[Math.floor(Math.random()*cheersHigh.length)]
+                           : cheersLow[Math.floor(Math.random()*cheersLow.length)];
+
+  // 능력치·경험치
+  const gain = qq.d*12;
+  st.int += qq.d; st.str += 1; st.missStreak=0;
+  let recovered=false;
+  if(st.pendingRecovery){ st.pendingRecovery=false; st.level+=1; recovered=true; }
+  addExp(gain);
+
+  // 진행 기록
+  st.progress[cur.unit]=st.progress[cur.unit]||[];
+  const qIndex=cur.order[cur.pos];
+  if(!st.progress[cur.unit].includes(qIndex)) st.progress[cur.unit].push(qIndex);
+
+  confetti(qq.d>=3?26:16);
+  const dinoBox=document.querySelector("#dinoStage > div");
+  if(dinoBox){ dinoBox.parentElement.classList.remove("grow"); void dinoBox.offsetWidth; dinoBox.parentElement.classList.add("grow"); }
+  if(recovered) toast("복구 성공! 공룡이 다시 커졌어요! 💪");
+  renderDinoPanel(); save();
+  cur.pos++;
+  setTimeout(nextQuestion, 1050);
+}
+
+function onWrong(qq){
+  sndWrong();
+  const fb=document.getElementById("feedback");
+  fb.style.color="#e5604f";
+  fb.textContent="앗, 틀렸어요. 능력치가 조금 줄었어요… 보충학습으로 배워봐요!";
+  st.int=Math.max(0, st.int-1);
+  st.str=Math.max(0, st.str-3);
+  st.exp=Math.max(0, st.exp-5);
+  st.missStreak++;
+  document.querySelector(".qpanel").classList.add("shake");
+  setTimeout(()=>document.querySelector(".qpanel").classList.remove("shake"),420);
+
+  if(st.missStreak>=3){
+    st.missStreak=0;
+    if(st.level>1){ st.level-=1; st.pendingRecovery=true; toast("실수가 쌓여 공룡이 작아졌어요! 😢"); }
+  }
+  renderDinoPanel(); save();
+  // 보충학습 오버레이
+  document.getElementById("suppConcept").innerHTML=qq.exp;
+  document.getElementById("overlaySupp").classList.remove("hidden");
+  // 다시 도전 시 같은 문제 재출제
+  document.getElementById("btnSuppRetry").onclick=()=>{
+    document.getElementById("overlaySupp").classList.add("hidden");
+    renderQuestion(qq);
+  };
+}
+
+function addExp(g){
+  st.exp+=g;
+  let leveled=false, evolvedFrom=stageOf(st.level);
+  while(st.exp>=expCap(st.level)){
+    st.exp-=expCap(st.level); st.level++; leveled=true;
+  }
+  if(leveled){
+    const nowStage=stageOf(st.level);
+    if(nowStage>evolvedFrom){ sndEvo(); toastEvo(`진화! ${STAGE_NAMES[nowStage]} 등장! ✨`); confetti(40); }
+    else { sndLevel(); toast(`레벨 업! Lv.${st.level} 🎉`); }
+  }
+}
+
+function unitClear(){
+  if(!st.cleared.includes(cur.unit)) st.cleared.push(cur.unit);
+  save();
+  const allDone = st.cleared.length>=UNITS.length;
+  document.getElementById("clearTitle").textContent = allDone ? "🎊 모든 단원 정복! 🎊" : UNITS[cur.unit].title+" 정복!";
+  document.getElementById("clearDino").innerHTML=`<div style="transform:scale(${dinoScale(st.level)});transform-origin:bottom center">${dinoSVG(stageOf(st.level))}</div>`;
+  document.getElementById("clearReward").innerHTML = allDone
+    ? `${st.name}(이)가 <b>Lv.${st.level} ${STAGE_NAMES[stageOf(st.level)]}</b>이 되었어요!<br>8개 단원의 과학 지식을 모두 마스터했어요. 당신은 이제 상위권 공룡 조련사! 👑`
+    : `${st.name} · Lv.${st.level} ${STAGE_NAMES[stageOf(st.level)]}<br>🧠 지능 ${st.int} · 💪 힘 ${st.str}<br>지도에서 원하는 단원을 골라 계속 성장해요!`;
+  document.getElementById("btnClearNext").textContent = allDone ? "명예의 전당 (지도로)" : "다음 단원 도전!";
+  sndEvo(); confetti(60);
+  show("screen-clear");
+}
+
+/* ===== 토스트 / 컨페티 ===== */
+let toastTimer=null;
+function toast(msg){ const t=document.getElementById("toast"); t.className="show"; t.textContent=msg; clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.className="",1800); }
+function toastEvo(msg){ const t=document.getElementById("toast"); t.className="show evo"; t.textContent=msg; clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.className="",2400); }
+function confetti(n){
+  const box=document.getElementById("confetti");
+  const colors=["#f6b93b","#6c5ce7","#2fb17a","#e5604f","#3d7bff","#f78fb3"];
+  for(let i=0;i<n;i++){
+    const c=document.createElement("i"); c.className="conf";
+    const x=Math.random()*100; c.style.left=x+"vw"; c.style.top="-20px";
+    c.style.background=colors[i%colors.length];
+    c.style.transform=`rotate(${Math.random()*360}deg)`;
+    box.appendChild(c);
+    const dx=(Math.random()-.5)*180, dy=window.innerHeight+40, rot=Math.random()*720;
+    c.animate([{transform:`translate(0,0) rotate(0)`,opacity:1},{transform:`translate(${dx}px,${dy}px) rotate(${rot}deg)`,opacity:.9}],
+      {duration:1400+Math.random()*800, easing:"cubic-bezier(.3,.6,.5,1)"}).onfinish=()=>c.remove();
+  }
+}
+
+/* ===== 이벤트 ===== */
+document.getElementById("btnNew").onclick=()=>{
+  const nm=document.getElementById("dinoName").value.trim()||"꼬마렉스";
+  st=freshState(nm); save(); renderMap(); show("screen-map");
+};
+document.getElementById("btnContinue").onclick=()=>{ renderMap(); show("screen-map"); };
+document.getElementById("btnHome").onclick=()=>{ if(st){ renderMap(); show("screen-map"); } else show("screen-start"); };
+document.getElementById("btnBack").onclick=()=>{ renderMap(); show("screen-map"); };
+document.getElementById("btnClearNext").onclick=()=>{ renderMap(); show("screen-map"); };
+document.getElementById("btnReset").onclick=()=>{
+  if(confirm("정말 처음부터 다시 시작할까요? 모든 진행이 사라져요.")){ localStorage.removeItem(SAVE_KEY); st=null; location.reload(); }
+};
+document.getElementById("btnSound").onclick=()=>{
+  soundOn=!soundOn; document.getElementById("btnSound").textContent=soundOn?"🔊 소리":"🔇 소리";
+  if(soundOn) sndCorrect();
+};
+
+/* ===== 초기화 ===== */
+(function init(){
+  const saved=load();
+  if(saved && saved.level){
+    st=saved;
+    document.getElementById("btnContinue").classList.remove("hidden");
+    document.getElementById("dinoName").value=saved.name;
+    document.getElementById("btnNew").textContent="새로 시작하기";
+  }
+  show("screen-start");
+})();
+</script>
+</body>
+</html>

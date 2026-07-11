@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>과학 진화 카드 배틀 — 중3 과학 레벨업</title>
+<style>
+  :root{
+    --panel:rgba(255,255,255,.72);
+    --line:rgba(120,110,160,.22); --txt:#4a4468; --sub:#8a86a8;
+    --gold:#d99521; --good:#2fae83; --bad:#e8677f; --accent:#8b7cf0;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; padding:0;}
+  body{
+    font-family:"Pretendard","맑은 고딕","Malgun Gothic",system-ui,sans-serif;
+    color:var(--txt);
+    background:
+      radial-gradient(1100px 700px at 82% -8%, #ffe0ea 0%, transparent 60%),
+      radial-gradient(950px 650px at -8% 108%, #d9f5ec 0%, transparent 58%),
+      radial-gradient(800px 600px at 110% 90%, #e6ecff 0%, transparent 55%),
+      linear-gradient(160deg,#eef1ff 0%,#f6eafc 100%);
+    background-attachment:fixed;
+    min-height:100vh; overflow-x:hidden;
+    user-select:none; -webkit-user-select:none;
+  }
+  .wrap{max-width:920px; margin:0 auto; padding:18px 16px 90px;}
+
+  /* Header / avatar */
+  .topbar{
+    display:flex; align-items:center; gap:14px;
+    background:var(--panel); border:1px solid var(--line);
+    border-radius:20px; padding:14px 16px; backdrop-filter:blur(8px);
+  }
+  .avatar{
+    font-size:46px; width:70px; height:70px; flex:0 0 70px;
+    display:grid; place-items:center; border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #ffffff22, #ffffff05);
+    border:2px solid var(--gold); box-shadow:0 0 26px #ffd54a55;
+    animation:bob 3s ease-in-out infinite;
+  }
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+  .who{flex:1; min-width:0;}
+  .rank{font-size:12px; color:var(--gold); font-weight:800; letter-spacing:1px;}
+  .stage-name{font-size:19px; font-weight:800; margin:2px 0 6px;}
+  .barwrap{height:12px; background:#ffffff18; border-radius:8px; overflow:hidden;}
+  .bar{height:100%; width:0%; border-radius:8px;
+    background:linear-gradient(90deg,#7c5cff,#39d98a,#ffd54a);
+    transition:width .7s cubic-bezier(.2,.9,.2,1);}
+  .stat{font-size:12px; color:var(--sub); margin-top:5px;}
+  .cardcount{text-align:center; flex:0 0 auto;}
+  .cardcount b{font-size:24px; color:var(--gold); display:block;}
+  .cardcount span{font-size:11px; color:var(--sub);}
+
+  h1.title{
+    text-align:center; font-size:26px; margin:22px 0 4px; letter-spacing:.5px;
+    text-shadow:0 0 18px #7c5cff88;
+  }
+  .subtitle{text-align:center; color:var(--sub); font-size:13px; margin-bottom:18px;}
+
+  .nav{display:flex; gap:8px; justify-content:center; margin:14px 0 4px; flex-wrap:wrap;}
+  .nav button{
+    background:var(--panel); color:var(--txt); border:1px solid var(--line);
+    padding:9px 16px; border-radius:999px; font-size:13px; font-weight:700; cursor:pointer;
+    transition:.15s;
+  }
+  .nav button.active,.nav button:hover{background:var(--accent); border-color:var(--accent);}
+
+  /* Unit map */
+  .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:14px; margin-top:16px;}
+  .unit{
+    position:relative; border-radius:20px; padding:18px; cursor:pointer;
+    border:1px solid var(--line); overflow:hidden; transition:.18s; color:#fff;
+    min-height:150px; display:flex; flex-direction:column; justify-content:space-between;
+  }
+  .unit:hover{transform:translateY(-4px); box-shadow:0 14px 34px #0007;}
+  .unit .u-emoji{font-size:40px;}
+  .unit .u-title{font-size:17px; font-weight:800; margin-top:8px; line-height:1.25;}
+  .unit .u-prog{font-size:12px; opacity:.92; margin-top:8px;}
+  .unit .u-pbar{height:8px; background:#00000035; border-radius:6px; margin-top:6px; overflow:hidden;}
+  .unit .u-pbar i{display:block; height:100%; background:#fff; border-radius:6px;}
+  .clearbadge{position:absolute; top:12px; right:12px; font-size:22px;
+    filter:drop-shadow(0 0 6px #ffd54a);}
+  .lockmsg{font-size:11px; opacity:.8;}
+
+  /* Panels / cards */
+  .panel{
+    background:var(--panel); border:1px solid var(--line); border-radius:20px;
+    padding:20px; margin-top:16px; backdrop-filter:blur(8px);
+  }
+  .back{display:inline-flex; align-items:center; gap:6px; background:none; border:none;
+    color:var(--sub); font-size:14px; cursor:pointer; margin-bottom:6px; font-weight:700;}
+  .lead{font-size:14px; color:var(--sub); line-height:1.6;}
+
+  .conceptlist{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:12px; margin-top:16px;}
+  .ccard{
+    border:1px solid var(--line); border-radius:16px; padding:14px; text-align:center;
+    background:linear-gradient(160deg,#ffffff10,#ffffff04); cursor:pointer; transition:.16s; position:relative;
+  }
+  .ccard:hover{transform:translateY(-3px); border-color:var(--gold);}
+  .ccard.owned{border-color:var(--good); box-shadow:0 0 18px #39d98a44;}
+  .ccard .cc-e{font-size:34px;}
+  .ccard .cc-n{font-size:13px; font-weight:800; margin-top:6px; line-height:1.3;}
+  .ccard .cc-s{font-size:11px; margin-top:6px; padding:3px 8px; border-radius:999px; display:inline-block;}
+  .cc-s.have{background:#39d98a22; color:var(--good);}
+  .cc-s.miss{background:#ffffff14; color:var(--sub);}
+  .cc-s.locked{background:#ff6b8a22; color:var(--bad);}
+  .diffbadge{position:absolute; top:8px; left:8px; font-size:10px; padding:2px 7px; border-radius:999px; font-weight:800;}
+  .d-fun{background:#39d98a33; color:#8affc4;}
+  .d-mid{background:#ffd54a33; color:#ffe38a;}
+  .d-deep{background:#7c5cff44; color:#c9bcff;}
+
+  /* Combine */
+  .combinebox{text-align:center; margin-top:20px; padding:18px; border-radius:18px;
+    border:1px dashed var(--line); background:#ffffff06;}
+  .combinebox.ready{border-color:var(--gold); background:#ffd54a10;}
+  .btn{
+    background:linear-gradient(90deg,#7c5cff,#5c8bff); color:#fff; border:none;
+    padding:13px 22px; border-radius:14px; font-size:15px; font-weight:800; cursor:pointer;
+    transition:.15s; box-shadow:0 8px 22px #7c5cff55;
+  }
+  .btn:hover{transform:translateY(-2px);}
+  .btn:disabled{opacity:.4; cursor:not-allowed; box-shadow:none; transform:none;}
+  .btn.gold{background:linear-gradient(90deg,#ffb23a,#ffd54a); color:#3a2600; box-shadow:0 8px 22px #ffd54a55;}
+  .btn.ghost{background:#ffffff12; box-shadow:none; color:var(--txt);}
+
+  /* Quiz */
+  .qbox .qhead{display:flex; align-items:center; gap:12px;}
+  .qbox .qhead .qe{font-size:40px;}
+  .qbox .qtag{font-size:12px; color:var(--gold); font-weight:800;}
+  .qbox .qname{font-size:18px; font-weight:800;}
+  .learnbox{background:#ffffff0a; border:1px solid var(--line); border-radius:14px; padding:14px 16px; margin-top:14px; font-size:14px; line-height:1.7;}
+  .question{font-size:17px; font-weight:800; margin:18px 0 12px; line-height:1.5;}
+  .choices{display:grid; gap:10px;}
+  .choice{
+    text-align:left; background:#ffffff0c; border:1px solid var(--line); color:var(--txt);
+    padding:14px 16px; border-radius:14px; font-size:15px; cursor:pointer; transition:.14s;
+    display:flex; gap:10px; align-items:center;
+  }
+  .choice:hover{border-color:var(--accent); background:#ffffff16;}
+  .choice .idx{width:26px; height:26px; flex:0 0 26px; border-radius:8px; background:#ffffff18;
+    display:grid; place-items:center; font-weight:800; font-size:13px;}
+  .choice.correct{border-color:var(--good); background:#39d98a22;}
+  .choice.wrong{border-color:var(--bad); background:#ff6b8a22;}
+  .choice.dim{opacity:.45;}
+  .feedback{margin-top:16px; padding:14px 16px; border-radius:14px; font-size:14px; line-height:1.7; display:none;}
+  .feedback.show{display:block;}
+  .feedback.ok{background:#39d98a1a; border:1px solid #39d98a55;}
+  .feedback.no{background:#ff6b8a18; border:1px solid #ff6b8a55;}
+  .feedback b{color:var(--gold);}
+  .actionrow{margin-top:16px; display:flex; gap:10px; flex-wrap:wrap;}
+
+  /* Dex */
+  .dexgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:10px; margin-top:12px;}
+  .dexcard{border:1px solid var(--line); border-radius:14px; padding:12px; text-align:center; background:#ffffff08;}
+  .dexcard.owned{border-color:var(--good);}
+  .dexcard.boss{border-color:var(--gold); background:#ffd54a0f;}
+  .dexcard .de{font-size:30px;}
+  .dexcard.unowned .de{filter:grayscale(1) opacity(.35);}
+  .dexcard .dn{font-size:11px; font-weight:700; margin-top:6px; line-height:1.25;}
+  .dexcard .db{font-size:9px; color:var(--gold); font-weight:800;}
+
+  /* Boss reveal modal */
+  .modal{position:fixed; inset:0; background:#05060fdd; display:none; place-items:center; z-index:60; padding:20px;}
+  .modal.show{display:grid;}
+  .bosscard{
+    background:linear-gradient(160deg,#241a4d,#3a1b5e); border:2px solid var(--gold);
+    border-radius:22px; padding:26px; max-width:380px; width:100%; text-align:center;
+    box-shadow:0 0 60px #ffd54a55; animation:pop .5s cubic-bezier(.2,1.4,.4,1);
+  }
+  @keyframes pop{0%{transform:scale(.5); opacity:0}100%{transform:scale(1); opacity:1}}
+  .bosscard .be{font-size:70px; animation:spin 4s linear infinite;}
+  @keyframes spin{0%{transform:rotate(-6deg)}50%{transform:rotate(6deg)}100%{transform:rotate(-6deg)}}
+  .bosscard h2{margin:8px 0 4px; font-size:22px; color:var(--gold);}
+  .bosscard p{font-size:14px; color:var(--sub); line-height:1.6;}
+
+  /* Evolution modal */
+  .evocard{
+    background:linear-gradient(160deg,#123a2e,#0b2647); border:2px solid var(--good);
+    border-radius:22px; padding:30px; max-width:360px; width:100%; text-align:center;
+    box-shadow:0 0 60px #39d98a66;
+  }
+  .evocard .old{font-size:34px; opacity:.5;}
+  .evocard .arrow{font-size:24px; margin:6px 0;}
+  .evocard .new{font-size:80px; animation:pop .6s cubic-bezier(.2,1.4,.4,1);}
+  .evocard h2{color:var(--good); margin:10px 0 4px;}
+
+  /* Confetti */
+  #confetti{position:fixed; inset:0; pointer-events:none; z-index:70;}
+
+  footer{
+    text-align:center; padding:26px 10px 34px; color:var(--sub); font-size:12px; line-height:1.8;
+    border-top:1px solid var(--line); margin-top:30px;
+  }
+  footer b{color:var(--txt);}
+  .toast{position:fixed; left:50%; bottom:24px; transform:translateX(-50%) translateY(80px);
+    background:#111a3a; border:1px solid var(--gold); color:var(--gold); font-weight:800;
+    padding:12px 22px; border-radius:14px; z-index:80; transition:.35s; box-shadow:0 10px 30px #0008;}
+  .toast.show{transform:translateX(-50%) translateY(0);}
+
+  .resetbtn{background:none; border:1px solid var(--line); color:var(--sub); padding:6px 14px;
+    border-radius:999px; font-size:12px; cursor:pointer; margin-top:14px;}
+</style>
+</head>
+<body oncontextmenu="return false" onselectstart="return false" ondragstart="return false">
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="avatar" id="avatar">🥚</div>
+    <div class="who">
+      <div class="rank" id="rank">LEVEL 1</div>
+      <div class="stage-name" id="stageName">과학의 알</div>
+      <div class="barwrap"><div class="bar" id="xpbar"></div></div>
+      <div class="stat" id="statLine">카드를 모아 진화하자!</div>
+    </div>
+    <div class="cardcount"><b id="cardNum">0</b><span>카드</span></div>
+  </div>
+
+  <h1 class="title">🧬 과학 진화 카드 배틀 ⚛️</h1>
+  <div class="subtitle">중3 과학 · 개념 카드를 모으고 조합해 <b>보스 몬스터</b>를 완성하라!</div>
+
+  <div class="nav">
+    <button id="navMap" class="active" onclick="go('map')">🗺️ 모험 지도</button>
+    <button id="navDex" onclick="go('dex')">📖 카드 도감</button>
+    <button id="navHelp" onclick="go('help')">❓ 게임 방법</button>
+  </div>
+
+  <div id="app"></div>
+
+  <footer>
+    <div>🔬 중3 과학 진화 카드 배틀 · 하위권에서 상위권으로 레벨업하는 개념 학습 게임</div>
+    <div style="margin-top:8px;"><b>All Rights Reserved (무단 전재 및 재배포 금지)</b></div>
+  </footer>
+</div>
+
+<div class="modal" id="modal"><div id="modalInner"></div></div>
+<canvas id="confetti"></canvas>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   데이터: 7개 단원 (2015 개정 중3 과학 교육과정 반영)
+   난이도(diff): fun(재미·기초) / mid(개념) / deep(심화·지적호기심)
+   ============================================================ */
+const UNITS = [
+  {
+    id:"chem", emoji:"⚗️", title:"화학 반응의 규칙과 에너지 변화",
+    grad:"linear-gradient(160deg,#ff7a59,#c9356e)",
+    concepts:[
+      {e:"🔀", n:"물리 변화 vs 화학 변화", diff:"fun",
+        learn:"물리 변화는 모양·상태만 바뀌고 물질은 그대로예요(예: 물이 얼음). 화학 변화는 새로운 물질이 생겨 성질이 바뀌어요(예: 종이가 탐).",
+        q:"다음 중 '화학 변화'인 것은?",
+        c:["물이 얼어 얼음이 된다","설탕이 물에 녹는다","종이가 불에 타서 재가 된다","유리컵이 깨진다"],
+        a:2, why:"종이가 타면 재·연기 등 새로운 물질이 생겨요. 나머지는 물질 자체는 그대로인 물리 변화!"},
+      {e:"⚛️", n:"원자와 분자", diff:"fun",
+        learn:"원자는 물질을 이루는 가장 작은 알갱이, 분자는 원자가 결합해 성질을 나타내는 입자예요. 물 분자(H₂O)는 수소 2 + 산소 1.",
+        q:"물 분자(H₂O) 하나를 이루는 원자는 모두 몇 개일까?",
+        c:["1개","2개","3개","4개"],
+        a:2, why:"수소(H) 2개 + 산소(O) 1개 = 총 3개!"},
+      {e:"📝", n:"화학 반응식", diff:"mid",
+        learn:"화학 반응식은 반응물→생성물을 화학식으로 나타낸 것. 반응 전후로 원자의 종류와 개수는 절대 변하지 않아요(계수로 맞춤).",
+        q:"화학 반응식에서 반응 전후로 '변하지 않는' 것은?",
+        c:["원자의 종류와 개수","분자의 종류","물질의 상태","물질의 성질"],
+        a:0, why:"원자는 없어지거나 새로 생기지 않아요. 그래서 원자 종류·개수는 그대로 보존!"},
+      {e:"⚖️", n:"질량 보존 법칙", diff:"mid",
+        learn:"라부아지에의 법칙. 화학 반응이 일어나도 반응물의 총질량 = 생성물의 총질량. 닫힌 용기에서 재 보면 질량이 그대로예요.",
+        q:"닫힌 용기 안에서 반응물 20g이 모두 반응했다. 생성물의 총질량은?",
+        c:["10g","20g","40g","알 수 없다"],
+        a:1, why:"질량 보존 법칙! 반응 전후 질량은 같으므로 20g 그대로."},
+      {e:"📊", n:"일정 성분비 법칙", diff:"mid",
+        learn:"프루스트의 법칙. 한 화합물을 이루는 성분 원소의 질량비는 항상 일정해요. 물(H₂O)에서 수소:산소 = 1:8.",
+        q:"물을 이룰 때 수소와 산소의 질량비는 항상?",
+        c:["1 : 8","1 : 1","8 : 1","2 : 1"],
+        a:0, why:"물은 언제나 수소:산소 = 1:8의 질량비로 만들어져요."},
+      {e:"🔥", n:"발열 반응·흡열 반응", diff:"fun",
+        learn:"발열 반응은 열을 방출해 주변 온도가 올라가요(연소, 손난로). 흡열 반응은 열을 흡수해 주변이 시원해져요(냉각팩).",
+        q:"반응이 일어날 때 주변 온도가 '올라가는' 반응은?",
+        c:["흡열 반응","발열 반응","물리 변화","증발"],
+        a:1, why:"발열 반응은 열을 내놓아 주변을 따뜻하게 해요(예: 연소, 손난로)."},
+    ],
+    boss:{e:"🐲", n:"화학 법칙의 지배자", diff:"deep",
+      desc:"질량 보존 + 일정 성분비를 모두 다스리는 화학 법칙의 왕!",
+      q:"탄소 12g이 산소 32g과 완전히 반응하여 이산화탄소(CO₂)가 되었다. 생성된 이산화탄소의 질량은?",
+      c:["12g","32g","44g","20g"],
+      a:2, why:"질량 보존 법칙에 따라 12g + 32g = 44g! 반응 전후 질량은 항상 같아요."}
+  },
+  {
+    id:"weather", emoji:"🌦️", title:"기권과 날씨",
+    grad:"linear-gradient(160deg,#36c5f0,#5c73ff)",
+    concepts:[
+      {e:"🌍", n:"기권의 층상 구조", diff:"fun",
+        learn:"높이에 따라 대류권-성층권-중간권-열권으로 나뉘어요. 성층권에는 자외선을 막는 오존층이 있어요.",
+        q:"높이 올라갈수록 기온이 높아지며 '오존층'이 있는 층은?",
+        c:["대류권","성층권","중간권","열권"],
+        a:1, why:"성층권은 오존층이 자외선을 흡수해 위로 갈수록 따뜻해져요."},
+      {e:"☀️", n:"복사 평형·온실 효과", diff:"mid",
+        learn:"지구가 흡수하는 태양 에너지 = 방출하는 지구 에너지일 때 복사 평형이라 하고, 이때 지구 평균 기온이 일정해요. 온실 기체가 많으면 기온 상승(온실 효과 강화).",
+        q:"지구가 흡수하는 태양 복사 에너지양과 방출하는 지구 복사 에너지양이 같은 상태는?",
+        c:["온실 효과","복사 평형","단열 팽창","대류"],
+        a:1, why:"복사 평형 상태일 때 지구의 평균 기온이 일정하게 유지돼요."},
+      {e:"💧", n:"포화 수증기량·이슬점", diff:"mid",
+        learn:"공기가 최대로 담을 수 있는 수증기량이 포화 수증기량. 공기를 식히면 어느 온도에서 응결이 시작되는데 그 온도가 이슬점이에요.",
+        q:"공기를 냉각시킬 때 수증기가 응결하기 시작하는 온도는?",
+        c:["끓는점","이슬점","어는점","녹는점"],
+        a:1, why:"이슬점에 도달하면 수증기가 물방울로 응결하기 시작해요."},
+      {e:"📈", n:"상대 습도", diff:"mid",
+        learn:"상대 습도 = (현재 수증기량 ÷ 포화 수증기량) × 100. 공기가 포화 상태면 100%예요.",
+        q:"현재 공기의 수증기량이 포화 수증기량과 똑같을 때 상대 습도는?",
+        c:["0%","50%","100%","200%"],
+        a:2, why:"포화 상태 = 상대 습도 100%! 더 이상 수증기를 담을 수 없어요."},
+      {e:"☁️", n:"구름과 강수", diff:"fun",
+        learn:"공기가 상승하면 압력이 낮아져 단열 '팽창'하고 온도가 내려가요. 이슬점 아래로 냉각되면 응결해 구름이 생겨요.",
+        q:"공기가 상승하면 단열 (   )하여 온도가 낮아지고 구름이 만들어진다. 빈칸은?",
+        c:["압축","팽창","가열","응고"],
+        a:1, why:"상승 → 단열 팽창 → 온도 하강 → 응결 → 구름! 순서를 기억하세요."},
+      {e:"🌬️", n:"기압·바람·전선", diff:"mid",
+        learn:"찬 기단이 따뜻한 기단 아래로 파고들면 한랭 전선(좁은 지역 소나기·강한 비), 따뜻한 기단이 찬 기단 위로 타고 오르면 온난 전선(넓은 지역 이슬비).",
+        q:"찬 공기가 따뜻한 공기 밑을 파고들며 좁은 지역에 소나기를 내리는 전선은?",
+        c:["온난 전선","한랭 전선","정체 전선","폐색 전선"],
+        a:1, why:"한랭 전선은 기울기가 급해 좁은 지역에 강한 소나기를 내려요."},
+    ],
+    boss:{e:"🌪️", n:"기상 대마왕", diff:"deep",
+      desc:"고기압·저기압과 바람을 자유자재로 부리는 날씨의 지배자!",
+      q:"북반구 지상에서 '저기압' 중심으로 바람은 어떻게 불까?",
+      c:["시계 방향으로 불어 나간다","반시계 방향으로 불어 들어온다","위에서 아래로만 분다","전혀 불지 않는다"],
+      a:1, why:"북반구 저기압은 바람이 반시계 방향으로 불어 들어오고 중심에서 상승 기류가 생겨 날씨가 흐려요."}
+  },
+  {
+    id:"motion", emoji:"🏃", title:"운동과 에너지",
+    grad:"linear-gradient(160deg,#ffb03a,#ff5e7e)",
+    concepts:[
+      {e:"🚗", n:"속력과 등속 운동", diff:"fun",
+        learn:"속력 = 이동 거리 ÷ 걸린 시간. 속력이 일정한 운동을 등속 운동이라 해요.",
+        q:"100m를 20초 동안 일정한 속력으로 달렸다. 이때 속력은?",
+        c:["2 m/s","5 m/s","20 m/s","2000 m/s"],
+        a:1, why:"100m ÷ 20s = 5 m/s!"},
+      {e:"🍎", n:"자유 낙하 운동", diff:"fun",
+        learn:"공기 저항이 없을 때 떨어지는 물체는 중력을 받아 속력이 '일정하게' 빨라져요(1초에 약 9.8m/s씩 증가).",
+        q:"공기 저항이 없을 때 자유 낙하 하는 물체의 속력은?",
+        c:["일정하다","점점 느려진다","일정하게 빨라진다","변화 없다"],
+        a:2, why:"중력 때문에 속력이 매초 일정하게 증가하는 운동이에요."},
+      {e:"💪", n:"일(Work)", diff:"mid",
+        learn:"과학에서 '일' = 힘 × 힘 방향으로 이동한 거리 (W = F × s), 단위는 J(줄).",
+        q:"물체에 10N의 힘을 주어 힘 방향으로 3m 이동시켰다. 한 일은?",
+        c:["3 J","10 J","13 J","30 J"],
+        a:3, why:"W = 힘 × 거리 = 10N × 3m = 30J!"},
+      {e:"⛰️", n:"위치 에너지", diff:"mid",
+        learn:"높은 곳에 있는 물체가 가진 에너지. 질량이 클수록, 높이가 높을수록 위치 에너지가 커요.",
+        q:"질량이 같을 때 물체의 위치 에너지가 가장 큰 경우는?",
+        c:["높이가 낮을 때","높이가 높을 때","바닥에 있을 때","관계없다"],
+        a:1, why:"높이가 높을수록 위치 에너지가 커져요."},
+      {e:"💨", n:"운동 에너지", diff:"mid",
+        learn:"움직이는 물체가 가진 에너지. 질량이 클수록, 속력이 빠를수록(속력의 제곱에 비례) 커요.",
+        q:"질량이 같을 때 운동 에너지가 가장 큰 경우는?",
+        c:["정지해 있을 때","느리게 움직일 때","빠르게 움직일 때","알 수 없다"],
+        a:2, why:"속력이 빠를수록 운동 에너지가 커져요(속력의 제곱에 비례)."},
+      {e:"🎢", n:"역학적 에너지 보존", diff:"deep",
+        learn:"공기 저항이 없으면 위치 에너지 + 운동 에너지 = 역학적 에너지는 항상 일정하게 보존돼요. 내려가면 위치E↓·운동E↑.",
+        q:"공기 저항이 없을 때 낙하하는 물체의 '위치 에너지 감소량'은 무엇의 증가량과 같은가?",
+        c:["열에너지","운동 에너지","소리 에너지","빛 에너지"],
+        a:1, why:"줄어든 위치 에너지가 그대로 운동 에너지로 전환돼 역학적 에너지가 보존돼요."},
+    ],
+    boss:{e:"🦅", n:"에너지 수호자", diff:"deep",
+      desc:"위치 에너지와 운동 에너지의 균형을 지키는 역학의 수호자!",
+      q:"높이 20m에서 가만히 떨어뜨린 공이 바닥에 닿기 직전, 처음의 위치 에너지는 대부분 무엇으로 바뀌었을까? (공기 저항 무시)",
+      c:["운동 에너지","위치 에너지","화학 에너지","그냥 사라진다"],
+      a:0, why:"역학적 에너지 보존! 위치 에너지가 모두 운동 에너지로 전환돼 바닥에서 속력이 가장 빨라요."}
+  },
+  {
+    id:"nerve", emoji:"🧠", title:"자극과 반응",
+    grad:"linear-gradient(160deg,#22c1a3,#3a7bff)",
+    concepts:[
+      {e:"👀", n:"감각 기관", diff:"fun",
+        learn:"눈(시각)·귀(청각)·코(후각)·혀(미각)·피부(피부 감각)로 자극을 받아들여요. 매운맛은 사실 통증(통각)이에요!",
+        q:"매운맛을 실제로 느끼게 하는 감각은?",
+        c:["미각","피부의 통각(통증)","후각","청각"],
+        a:1, why:"매운맛은 혀의 맛이 아니라 피부·혀의 통증을 느끼는 통각이에요. 신기하죠!"},
+      {e:"👁️", n:"눈과 귀의 구조", diff:"mid",
+        learn:"눈은 수정체가 빛을 모아 '망막'에 상을 맺어요. 귀는 고막→청소골→달팽이관에서 소리를 감지해요.",
+        q:"눈에서 물체의 상이 맺히는 곳은?",
+        c:["수정체","각막","망막","홍채"],
+        a:2, why:"망막에 상이 맺히고, 시각 세포가 이를 자극으로 받아들여요."},
+      {e:"🔌", n:"뉴런(신경 세포)", diff:"mid",
+        learn:"뉴런은 자극을 전달하는 세포. 감각 뉴런(자극→중추), 연합 뉴런(중추 안), 운동 뉴런(중추→반응기)이 있어요.",
+        q:"자극을 감각 기관에서 중추로 전달하는 뉴런은?",
+        c:["운동 뉴런","감각 뉴런","연합 뉴런","없음"],
+        a:1, why:"감각 뉴런이 자극을 중추 신경계로 전달해요."},
+      {e:"🧠", n:"신경계", diff:"mid",
+        learn:"중추 신경계(뇌·척수)가 명령을 내리고, 말초 신경계가 자극과 명령을 전달해요.",
+        q:"뇌와 척수로 이루어진 신경계는?",
+        c:["말초 신경계","중추 신경계","자율 신경계","감각 신경"],
+        a:1, why:"뇌 + 척수 = 중추 신경계. 판단과 명령을 담당해요."},
+      {e:"⚡", n:"반사", diff:"fun",
+        learn:"뜨거운 것에 손이 닿자마자 나도 모르게 떼는 반응은 '척수'가 중추인 무조건 반사예요. 대뇌를 거치지 않아 빨라요.",
+        q:"뜨거운 것에 손이 닿자마자 손을 떼는 반사의 중추는?",
+        c:["대뇌","척수","소뇌","간뇌"],
+        a:1, why:"척수 반사! 대뇌를 거치지 않아 매우 빠르게 몸을 보호해요."},
+      {e:"🌡️", n:"호르몬과 항상성", diff:"deep",
+        learn:"호르몬은 혈액을 타고 이동해 몸을 조절해요. 인슐린은 혈당을 낮추고, 글루카곤은 높여 혈당을 일정하게(항상성) 유지해요.",
+        q:"혈당량이 높을 때 분비되어 혈당을 낮추는 호르몬은?",
+        c:["글루카곤","인슐린","아드레날린","티록신"],
+        a:1, why:"인슐린이 혈당을 낮추고, 글루카곤이 높여 균형을 맞춰요."},
+    ],
+    boss:{e:"🛡️", n:"항상성 지배자", diff:"deep",
+      desc:"체온·혈당을 늘 일정하게 지키는 우리 몸의 균형 수호자!",
+      q:"더울 때 우리 몸은 땀을 흘리고 피부 근처 혈관을 넓힌다. 이는 무엇을 일정하게 유지하기 위한 작용일까?",
+      c:["혈당량","체온","키","시력"],
+      a:1, why:"체온 유지! 땀 증발과 혈관 확장으로 열을 내보내 체온을 일정하게 지켜요(항상성)."}
+  },
+  {
+    id:"genetics", emoji:"🧬", title:"생식과 유전",
+    grad:"linear-gradient(160deg,#9b5cff,#ff5ec4)",
+    concepts:[
+      {e:"✂️", n:"세포 분열", diff:"fun",
+        learn:"세포가 무한정 커지지 않고 분열하는 이유는, 커질수록 부피에 비해 표면적이 작아져 물질 교환이 어려워지기 때문이에요.",
+        q:"세포가 커지기만 하지 않고 분열하는 가장 큰 이유는?",
+        c:["예뻐지려고","커질수록 물질 교환(표면적/부피)이 불리해져서","무거워지려고","특별한 이유 없음"],
+        a:1, why:"세포가 커지면 표면적보다 부피가 더 빨리 늘어 물질 교환이 어려워져서 분열해요."},
+      {e:"🧬", n:"염색체·DNA·유전자", diff:"mid",
+        learn:"염색체는 DNA와 단백질로 구성. DNA에는 유전 정보가 담겨 있고, 그 중 특정 형질 정보를 담은 부분이 유전자예요.",
+        q:"유전 정보를 담고 있으며 염색체를 이루는 물질은?",
+        c:["단백질","DNA","지방","물"],
+        a:1, why:"DNA에 유전 정보가 저장돼 있어요. 염색체 = DNA + 단백질."},
+      {e:"👥", n:"체세포 분열 vs 감수 분열", diff:"mid",
+        learn:"체세포 분열은 몸을 만들고 염색체 수가 그대로. 감수 분열은 생식세포를 만들며 염색체 수가 절반으로 줄어요.",
+        q:"생식세포를 만들며 염색체 수가 절반으로 줄어드는 분열은?",
+        c:["체세포 분열","감수 분열","이분법","출아법"],
+        a:1, why:"감수 분열로 염색체 수가 반이 되어야 수정 후 원래 수로 돌아와요."},
+      {e:"🟢", n:"멘델의 유전(완두)", diff:"mid",
+        learn:"멘델은 완두로 유전을 연구했어요. 순종 둥근(RR) × 순종 주름(rr) → 잡종1대는 모두 둥근 완두(우열의 원리).",
+        q:"순종 둥근 완두(RR)와 순종 주름진 완두(rr)를 교배한 잡종 1대의 표현형은?",
+        c:["모두 주름진 완두","모두 둥근 완두","둥근:주름 = 1:1","알 수 없다"],
+        a:1, why:"둥근(R)이 우성이므로 잡종 1대는 모두 둥근 완두! (우열의 원리)"},
+      {e:"📐", n:"우열·분리의 법칙", diff:"deep",
+        learn:"잡종 1대(Rr)끼리 교배하면 잡종 2대에서 우성:열성 = 3:1로 나타나요(분리의 법칙).",
+        q:"잡종 1대(Rr)끼리 교배할 때 잡종 2대의 표현형 비(둥근:주름)는?",
+        c:["1 : 1","3 : 1","2 : 1","1 : 3"],
+        a:1, why:"RR:Rr:rr = 1:2:1 → 둥근:주름 = 3:1! 분리의 법칙이에요."},
+      {e:"👨‍👩‍👧", n:"사람의 유전 연구", diff:"mid",
+        learn:"사람은 한 세대가 길고, 자손 수가 적으며, 마음대로 교배 실험을 할 수 없어 유전 연구가 어려워요. 그래서 가계도·쌍둥이 연구를 활용해요.",
+        q:"사람의 유전 연구가 어려운 이유가 '아닌' 것은?",
+        c:["한 세대가 길다","자손의 수가 적다","마음대로 교배 실험을 할 수 없다","사람에게는 염색체가 없다"],
+        a:3, why:"사람도 당연히 염색체가 있어요! 나머지가 연구가 어려운 진짜 이유예요."},
+    ],
+    boss:{e:"🧙", n:"유전의 설계자", diff:"deep",
+      desc:"확률로 자손의 형질을 예측하는 유전의 마법사!",
+      q:"유전자형이 Rr인 부모 사이에서 태어난 자손이 주름진 완두(rr)일 확률은?",
+      c:["1/2","1/4","3/4","0"],
+      a:1, why:"Rr × Rr → RR:Rr:rr = 1:2:1. 따라서 rr(주름)일 확률은 1/4!"}
+  },
+  {
+    id:"energy", emoji:"⚡", title:"에너지 전환과 보존",
+    grad:"linear-gradient(160deg,#ffd23a,#ff8a3a)",
+    concepts:[
+      {e:"🎡", n:"역학적 에너지 전환", diff:"fun",
+        learn:"그네·롤러코스터에서 위치 에너지 ↔ 운동 에너지가 서로 전환돼요. 가장 높은 곳에서 위치 E 최대, 운동 E 최소.",
+        q:"그네가 가장 높이 올라간 순간 가장 큰 에너지는?",
+        c:["운동 에너지","위치 에너지","전기 에너지","소리 에너지"],
+        a:1, why:"가장 높은 곳에서 위치 에너지가 최대, 운동 에너지는 최소(순간 정지)!"},
+      {e:"🧲", n:"전자기 유도·발전기", diff:"mid",
+        learn:"코일 근처에서 자석을 움직이면 전류가 흐르는 현상이 전자기 유도. 발전기는 이 원리로 전기를 만들어요.",
+        q:"코일 근처에서 자석을 움직일 때 전류가 흐르는 현상은?",
+        c:["전기 분해","전자기 유도","정전기","마찰 전기"],
+        a:1, why:"전자기 유도! 발전기가 전기를 생산하는 핵심 원리예요."},
+      {e:"🔋", n:"발전기의 에너지 전환", diff:"mid",
+        learn:"발전기는 터빈이 돌아가는 운동(역학적) 에너지를 전기 에너지로 바꿔요.",
+        q:"발전기는 어떤 에너지를 전기 에너지로 바꿀까?",
+        c:["빛 에너지","역학적(운동) 에너지","소리 에너지","화학 에너지"],
+        a:1, why:"터빈의 운동 에너지 → 전기 에너지로 전환해요."},
+      {e:"💡", n:"소비 전력·전력량", diff:"mid",
+        learn:"소비 전력 = 1초 동안 사용하는 전기 에너지, 단위 W(와트). 전력량 = 전력 × 시간, 단위 Wh.",
+        q:"소비 전력의 단위는?",
+        c:["J(줄)","W(와트)","V(볼트)","A(암페어)"],
+        a:1, why:"소비 전력의 단위는 W(와트)! 1W = 1초에 1J 사용."},
+      {e:"♻️", n:"에너지 전환과 보존", diff:"deep",
+        learn:"에너지는 여러 형태로 전환되지만 사라지거나 새로 생기지 않고 총량은 항상 일정하게 보존돼요(에너지 보존 법칙).",
+        q:"에너지는 형태가 바뀌어도 그 총량은?",
+        c:["점점 늘어난다","점점 줄어든다","항상 일정하게 보존된다","완전히 사라진다"],
+        a:2, why:"에너지 보존 법칙! 형태만 바뀔 뿐 총량은 그대로예요."},
+    ],
+    boss:{e:"🔮", n:"에너지 연금술사", diff:"deep",
+      desc:"모든 에너지를 자유자재로 전환하는 보존 법칙의 마스터!",
+      q:"선풍기는 전기 에너지를 주로 어떤 에너지로 바꿀까? (주된 목적)",
+      c:["운동 에너지(바람)","화학 에너지","핵 에너지","위치 에너지"],
+      a:0, why:"선풍기는 전기 에너지 → 날개의 운동 에너지(바람)! 일부는 열·소리로도 전환돼요."}
+  },
+  {
+    id:"space", emoji:"🌌", title:"별과 우주",
+    grad:"linear-gradient(160deg,#5c5cff,#1b1b5e)",
+    concepts:[
+      {e:"📐", n:"연주 시차", diff:"mid",
+        learn:"지구가 태양을 공전하며 6개월 간격으로 별을 볼 때 생기는 시차의 절반이 연주 시차. 별이 멀수록 연주 시차는 작아져요.",
+        q:"별까지의 거리가 멀수록 연주 시차는?",
+        c:["커진다","작아진다","일정하다","항상 0이다"],
+        a:1, why:"멀리 있는 별일수록 연주 시차가 작아져요(거리에 반비례)."},
+      {e:"✨", n:"별의 밝기와 등급", diff:"fun",
+        learn:"별의 밝기는 등급으로 나타내요. 등급 숫자가 작을수록 더 밝은 별! 1등급은 6등급보다 약 100배 밝아요.",
+        q:"별의 '등급' 숫자가 작을수록 그 별은?",
+        c:["더 어둡다","더 밝다","더 차갑다","더 멀다"],
+        a:1, why:"숫자가 작을수록 밝은 별! (예: 1등급 > 6등급). 헷갈리기 쉬우니 주의!"},
+      {e:"🌈", n:"별의 색과 표면 온도", diff:"mid",
+        learn:"별의 색으로 표면 온도를 알 수 있어요. 파란색이 가장 뜨겁고, 붉은색이 가장 차가워요(청백→백→황→적).",
+        q:"표면 온도가 가장 '높은' 별의 색은?",
+        c:["붉은색","노란색","파란색","주황색"],
+        a:2, why:"파란(청색) 별이 가장 뜨겁고, 붉은 별이 가장 차가워요."},
+      {e:"🌀", n:"우리은하·성단·성운", diff:"mid",
+        learn:"태양계는 우리은하에 속해요. 별들이 모인 무리가 성단, 가스와 먼지 구름이 성운이에요.",
+        q:"태양계가 속해 있는 은하의 이름은?",
+        c:["안드로메다은하","우리은하","소용돌이은하","마젤란은하"],
+        a:1, why:"태양계는 '우리은하' 안에 있어요. 밤하늘의 은하수가 바로 우리은하!"},
+      {e:"💥", n:"우주 팽창·빅뱅", diff:"deep",
+        learn:"우주는 한 점에서 대폭발(빅뱅)로 시작해 지금도 팽창하고 있어요. 멀리 있는 은하일수록 더 빠르게 멀어져요.",
+        q:"우주가 한 점에서 대폭발로 시작되었다는 이론은?",
+        c:["정상 우주론","빅뱅(대폭발) 우주론","천동설","지동설"],
+        a:1, why:"빅뱅 우주론! 우주가 팽창한다는 증거들이 이를 뒷받침해요."},
+      {e:"🚀", n:"우주 탐사", diff:"fun",
+        learn:"우주 망원경·탐사선으로 우주를 관측해요. 대기 밖에서는 대기의 방해가 없어 더 선명하게 볼 수 있어요.",
+        q:"우주 망원경을 대기권 밖에 두고 관측하는 이유로 알맞은 것은?",
+        c:["지구가 평평해서","대기의 영향을 덜 받아 선명하게 관측할 수 있어서","우주에 별이 없어서","특별한 이유 없음"],
+        a:1, why:"대기가 빛을 흡수·산란시키므로, 대기 밖에서 보면 훨씬 선명해요."},
+    ],
+    boss:{e:"🌠", n:"우주의 지배자", diff:"deep",
+      desc:"팽창하는 우주의 비밀을 꿰뚫어 보는 우주의 왕!",
+      q:"멀리 있는 은하일수록 더 빠르게 멀어지는 현상은 무엇을 뒷받침할까?",
+      c:["우주의 수축","우주의 팽창","지구의 자전","달의 공전"],
+      a:1, why:"멀수록 빠르게 멀어진다는 것은 우주 전체가 팽창하고 있다는 강력한 증거예요(빅뱅 우주론)."}
+  },
+];
+
+/* ===== 진화 단계 ===== */
+const STAGES = [
+  {min:0,  emoji:"🥚", name:"과학의 알",     tag:"하위권 · 이제 시작!"},
+  {min:4,  emoji:"🐣", name:"궁금이 병아리", tag:"호기심 발동!"},
+  {min:10, emoji:"🦎", name:"탐구 카멜레온", tag:"개념 흡수 중"},
+  {min:18, emoji:"🦖", name:"개념 공룡",     tag:"중위권 돌파!"},
+  {min:28, emoji:"🐉", name:"과학 드래곤",   tag:"상위권 진입!"},
+  {min:38, emoji:"🦸", name:"과학 마스터",   tag:"최상위권 완성!"},
+];
+const TOTAL_CARDS = UNITS.reduce((s,u)=>s+u.concepts.length+1,0);
+
+/* ===== 상태 저장 ===== */
+const SAVE_KEY="science-evolve-save-v1";
+let state = load();
+function load(){
+  try{ const s=JSON.parse(localStorage.getItem(SAVE_KEY)); if(s&&s.owned) return s; }catch(e){}
+  return {owned:{}, xp:0};
+}
+function save(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify(state)); }catch(e){} }
+
+/* ===== 유틸 ===== */
+const $ = s=>document.querySelector(s);
+const app = $("#app");
+function ownedCount(){ return Object.keys(state.owned).length; }
+function curStage(){ const n=ownedCount(); let st=STAGES[0]; for(const s of STAGES) if(n>=s.min) st=s; return st; }
+function nextStage(){ const n=ownedCount(); for(const s of STAGES) if(n<s.min) return s; return null; }
+function unitProgress(u){
+  let c=0; u.concepts.forEach((x,i)=>{ if(state.owned[u.id+"_"+i]) c++; });
+  const bossDone = !!state.owned[u.id+"_boss"];
+  return {c, total:u.concepts.length, bossDone};
+}
+function allConceptsOwned(u){ return u.concepts.every((x,i)=>state.owned[u.id+"_"+i]); }
+
+/* ===== 헤더 갱신 ===== */
+function updateHeader(){
+  const st=curStage(), n=ownedCount(), ns=nextStage();
+  $("#avatar").textContent=st.emoji;
+  $("#stageName").textContent=st.name;
+  const lvl = STAGES.indexOf(st)+1;
+  $("#rank").textContent="LEVEL "+lvl+" · "+st.tag;
+  $("#cardNum").textContent=n;
+  if(ns){
+    const span = ns.min - st.min, got = n - st.min;
+    $("#xpbar").style.width = Math.min(100, got/span*100)+"%";
+    $("#statLine").textContent = `다음 진화까지 카드 ${ns.min-n}장! (${n}/${TOTAL_CARDS})`;
+  }else{
+    $("#xpbar").style.width="100%";
+    $("#statLine").textContent=`🎉 모든 카드 ${n}/${TOTAL_CARDS} · 과학 마스터 달성!`;
+  }
+}
+
+/* ===== 라우팅 ===== */
+let view={name:"map"};
+function go(name, arg){
+  view={name, arg};
+  ["Map","Dex","Help"].forEach(k=>$("#nav"+k).classList.toggle("active", name.toLowerCase().startsWith(k.toLowerCase())));
+  if(name==="map") renderMap();
+  else if(name==="dex") renderDex();
+  else if(name==="help") renderHelp();
+  else if(name==="unit") renderUnit(arg);
+  else if(name==="quiz") renderQuiz(arg.uIndex, arg.cIndex);
+  else if(name==="boss") renderBoss(arg);
+  window.scrollTo({top:0,behavior:"smooth"});
+  updateHeader();
+}
+
+/* ===== 지도 ===== */
+function renderMap(){
+  let h=`<div class="grid">`;
+  UNITS.forEach((u,i)=>{
+    const p=unitProgress(u);
+    const pct = Math.round((p.c + (p.bossDone?1:0))/(p.total+1)*100);
+    const cleared = p.bossDone;
+    h+=`<div class="unit" style="background:${u.grad}" onclick="go('unit',${i})">
+      ${cleared?'<div class="clearbadge">👑</div>':''}
+      <div><div class="u-emoji">${u.emoji}</div>
+      <div class="u-title">${u.title}</div></div>
+      <div>
+        <div class="u-prog">개념 카드 ${p.c}/${p.total} ${cleared?'· 보스 클리어!':''}</div>
+        <div class="u-pbar"><i style="width:${pct}%"></i></div>
+      </div>
+    </div>`;
+  });
+  h+=`</div>
+    <div class="panel" style="text-align:center">
+      <div class="lead">💡 각 단원에서 개념 카드를 모두 모으면 <b style="color:var(--gold)">🔮 조합</b>으로 보스 몬스터를 완성할 수 있어요.<br>퀴즈를 틀려도 걱정 마세요 — <b style="color:var(--good)">보충학습</b> 후 다시 도전하면 됩니다!</div>
+      <button class="resetbtn" onclick="resetGame()">처음부터 다시 (기록 초기화)</button>
+    </div>`;
+  app.innerHTML=h;
+}
+
+/* ===== 단원 화면 ===== */
+function renderUnit(uIndex){
+  const u=UNITS[uIndex]; const p=unitProgress(u);
+  let h=`<div class="panel">
+    <button class="back" onclick="go('map')">‹ 지도로</button>
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="font-size:42px">${u.emoji}</div>
+      <div><div style="font-size:20px;font-weight:800">${u.title}</div>
+      <div class="lead">개념 카드 ${p.c}/${u.concepts.length} 수집 · 카드를 눌러 학습을 시작하세요</div></div>
+    </div>
+    <div class="conceptlist">`;
+  u.concepts.forEach((c,ci)=>{
+    const own=!!state.owned[u.id+"_"+ci];
+    const dTxt={fun:"🎈 기초",mid:"📘 개념",deep:"🔥 심화"}[c.diff];
+    const dCls={fun:"d-fun",mid:"d-mid",deep:"d-deep"}[c.diff];
+    h+=`<div class="ccard ${own?'owned':''}" onclick="go('quiz',{uIndex:${uIndex},cIndex:${ci}})">
+      <div class="diffbadge ${dCls}">${dTxt}</div>
+      <div class="cc-e">${own?c.e:'❔'}</div>
+      <div class="cc-n">${c.n}</div>
+      <div class="cc-s ${own?'have':'miss'}">${own?'✔ 획득':'학습하기'}</div>
+    </div>`;
+  });
+  h+=`</div>`;
+
+  // 조합 박스
+  const ready=allConceptsOwned(u);
+  const bossDone=!!state.owned[u.id+"_boss"];
+  h+=`<div class="combinebox ${ready&&!bossDone?'ready':''}">`;
+  if(bossDone){
+    h+=`<div style="font-size:52px">${u.boss.e}</div>
+      <div style="font-size:18px;font-weight:800;color:var(--gold)">👑 ${u.boss.n} 완성!</div>
+      <div class="lead">${u.boss.desc}</div>`;
+  }else if(ready){
+    h+=`<div style="font-size:40px">🔮✨</div>
+      <div style="font-size:17px;font-weight:800">모든 개념 카드를 모았어요!</div>
+      <div class="lead">이제 카드를 조합해 <b style="color:var(--gold)">보스 몬스터</b>를 소환하세요.</div>
+      <button class="btn gold" style="margin-top:12px" onclick="startCombine(${uIndex})">🔮 카드 조합하기!</button>`;
+  }else{
+    h+=`<div style="font-size:40px">🔒</div>
+      <div style="font-size:16px;font-weight:800">보스 조합 잠김</div>
+      <div class="lead">개념 카드 ${p.c}/${u.concepts.length} — 모두 모으면 보스를 소환할 수 있어요!</div>`;
+  }
+  h+=`</div></div>`;
+  app.innerHTML=h;
+}
+
+/* ===== 퀴즈 화면 ===== */
+let quizAnswered=false;
+function renderQuiz(uIndex,cIndex, showLearn){
+  const u=UNITS[uIndex], c=u.concepts[cIndex];
+  const own=!!state.owned[u.id+"_"+cIndex];
+  quizAnswered=false;
+  const dTxt={fun:"🎈 기초 · 재미로 시작",mid:"📘 개념 이해",deep:"🔥 심화 · 왜 그럴까?"}[c.diff];
+  let h=`<div class="panel qbox">
+    <button class="back" onclick="go('unit',${uIndex})">‹ ${u.title}</button>
+    <div class="qhead">
+      <div class="qe">${own?c.e:'❔'}</div>
+      <div><div class="qtag">${dTxt}</div><div class="qname">${c.n}</div></div>
+    </div>`;
+  if(showLearn||own){
+    h+=`<div class="learnbox">📚 <b>학습 노트</b><br>${c.learn}</div>`;
+  }
+  h+=`<div class="question">${c.q}</div><div class="choices">`;
+  c.c.forEach((ch,i)=>{
+    h+=`<button class="choice" id="ch${i}" onclick="answer(${uIndex},${cIndex},${i})">
+      <span class="idx">${i+1}</span><span>${ch}</span></button>`;
+  });
+  h+=`</div><div class="feedback" id="fb"></div><div class="actionrow" id="act"></div></div>`;
+  app.innerHTML=h;
+}
+
+function answer(uIndex,cIndex,pick){
+  if(quizAnswered) return;
+  quizAnswered=true;
+  const u=UNITS[uIndex], c=u.concepts[cIndex];
+  const correct=c.a;
+  const fb=$("#fb"), act=$("#act");
+  c.c.forEach((_,i)=>{
+    const el=$("#ch"+i);
+    if(i===correct) el.classList.add("correct");
+    else if(i===pick) el.classList.add("wrong");
+    else el.classList.add("dim");
+    el.onclick=null;
+  });
+  if(pick===correct){
+    const firstTime=!state.owned[u.id+"_"+cIndex];
+    state.owned[u.id+"_"+cIndex]=true; state.xp+=10; save();
+    fb.className="feedback ok show";
+    fb.innerHTML=`✅ <b>정답!</b> ${c.why}<br>🃏 <b>[${c.n}]</b> 카드를 획득했어요!`;
+    act.innerHTML=`<button class="btn" onclick="go('unit',${uIndex})">단원으로 돌아가기</button>`;
+    if(firstTime){ confetti(); toast(`🃏 카드 획득: ${c.n}`); }
+    checkEvolution();
+    updateHeader();
+  }else{
+    fb.className="feedback no show";
+    fb.innerHTML=`❌ <b>아쉬워요!</b> 정답은 <b>${correct+1}번</b>이에요.<br>📚 <b>보충학습</b>: ${c.learn}<br><br>${c.why}<br><br>💪 보충학습을 읽고 <b>다시 도전</b>하면 카드를 얻을 수 있어요!`;
+    act.innerHTML=`<button class="btn gold" onclick="go('quiz',{uIndex:${uIndex},cIndex:${cIndex}})">🔁 다시 도전!</button>
+      <button class="btn ghost" onclick="go('unit',${uIndex})">나중에</button>`;
+  }
+}
+
+/* ===== 조합 → 보스 ===== */
+function startCombine(uIndex){
+  const u=UNITS[uIndex];
+  const m=$("#modal"), mi=$("#modalInner");
+  mi.innerHTML=`<div class="bosscard">
+    <div class="be">${u.boss.e}</div>
+    <h2>⚡ 카드 조합 성공! ⚡</h2>
+    <div style="font-size:19px;font-weight:800;margin:6px 0">${u.boss.n}</div>
+    <p>${u.boss.desc}</p>
+    <p style="margin-top:10px;color:var(--gold)">보스를 물리치려면 마지막 <b>통합 심화 문제</b>를 풀어야 해요!</p>
+    <button class="btn gold" style="margin-top:14px" onclick="closeModal();go('boss',${uIndex})">⚔️ 보스전 시작!</button>
+  </div>`;
+  m.classList.add("show"); confetti();
+}
+
+function renderBoss(uIndex){
+  const u=UNITS[uIndex], b=u.boss;
+  quizAnswered=false;
+  let h=`<div class="panel qbox">
+    <button class="back" onclick="go('unit',${uIndex})">‹ ${u.title}</button>
+    <div class="qhead">
+      <div class="qe">${b.e}</div>
+      <div><div class="qtag">🔥 보스전 · 통합 심화</div><div class="qname">${b.n}</div></div>
+    </div>
+    <div class="learnbox">🐲 <b>${b.n}</b> — ${b.desc}</div>
+    <div class="question">${b.q}</div><div class="choices">`;
+  b.c.forEach((ch,i)=>{
+    h+=`<button class="choice" id="ch${i}" onclick="answerBoss(${uIndex},${i})">
+      <span class="idx">${i+1}</span><span>${ch}</span></button>`;
+  });
+  h+=`</div><div class="feedback" id="fb"></div><div class="actionrow" id="act"></div></div>`;
+  app.innerHTML=h;
+}
+
+function answerBoss(uIndex,pick){
+  if(quizAnswered) return; quizAnswered=true;
+  const u=UNITS[uIndex], b=u.boss, correct=b.a;
+  const fb=$("#fb"), act=$("#act");
+  b.c.forEach((_,i)=>{
+    const el=$("#ch"+i);
+    if(i===correct) el.classList.add("correct");
+    else if(i===pick) el.classList.add("wrong");
+    else el.classList.add("dim");
+    el.onclick=null;
+  });
+  if(pick===correct){
+    const first=!state.owned[u.id+"_boss"];
+    state.owned[u.id+"_boss"]=true; state.xp+=30; save();
+    fb.className="feedback ok show";
+    fb.innerHTML=`🎉 <b>보스 클리어!</b> ${b.why}<br>👑 보스 카드 <b>[${b.n}]</b> 획득! 단원을 정복했어요!`;
+    act.innerHTML=`<button class="btn" onclick="go('unit',${uIndex})">단원으로</button>
+      <button class="btn ghost" onclick="go('map')">🗺️ 다음 모험!</button>`;
+    if(first){ confetti(); confetti(); toast(`👑 보스 정복: ${b.n}`); }
+    checkEvolution(); updateHeader();
+  }else{
+    fb.className="feedback no show";
+    fb.innerHTML=`💥 <b>보스에게 막혔어요!</b> 정답은 <b>${correct+1}번</b>.<br>🧠 <b>힌트</b>: ${b.why}<br><br>다시 도전해서 보스를 물리치세요!`;
+    act.innerHTML=`<button class="btn gold" onclick="go('boss',${uIndex})">🔁 다시 도전!</button>
+      <button class="btn ghost" onclick="go('unit',${uIndex})">나중에</button>`;
+  }
+}
+
+/* ===== 진화 체크 ===== */
+let lastStageIdx = STAGES.indexOf(curStage());
+function checkEvolution(){
+  const nowIdx=STAGES.indexOf(curStage());
+  if(nowIdx>lastStageIdx){
+    const oldS=STAGES[lastStageIdx], newS=STAGES[nowIdx];
+    lastStageIdx=nowIdx;
+    const m=$("#modal"), mi=$("#modalInner");
+    mi.innerHTML=`<div class="evocard">
+      <div style="color:var(--good);font-weight:800;letter-spacing:1px">✨ 진화! ✨</div>
+      <div class="old">${oldS.emoji}</div>
+      <div class="arrow">⬇️</div>
+      <div class="new">${newS.emoji}</div>
+      <h2>${newS.name}</h2>
+      <p class="lead">${newS.tag}<br>축하해요! 한 단계 성장했어요 🎉</p>
+      <button class="btn" style="margin-top:14px" onclick="closeModal()">계속하기</button>
+    </div>`;
+    m.classList.add("show"); confetti(); confetti();
+  }
+}
+
+/* ===== 도감 ===== */
+function renderDex(){
+  let h=`<div class="panel"><div style="font-size:18px;font-weight:800">📖 카드 도감 <span style="color:var(--sub);font-size:13px">(${ownedCount()}/${TOTAL_CARDS})</span></div>`;
+  UNITS.forEach(u=>{
+    h+=`<div style="margin-top:18px;font-weight:800">${u.emoji} ${u.title}</div><div class="dexgrid">`;
+    u.concepts.forEach((c,ci)=>{
+      const own=!!state.owned[u.id+"_"+ci];
+      h+=`<div class="dexcard ${own?'owned':'unowned'}">
+        <div class="de">${own?c.e:'❔'}</div>
+        <div class="dn">${own?c.n:'???'}</div>
+      </div>`;
+    });
+    const bown=!!state.owned[u.id+"_boss"];
+    h+=`<div class="dexcard boss ${bown?'owned':'unowned'}">
+      <div class="de">${bown?u.boss.e:'🔒'}</div>
+      <div class="db">★ BOSS ★</div>
+      <div class="dn">${bown?u.boss.n:'???'}</div>
+    </div>`;
+    h+=`</div>`;
+  });
+  h+=`</div>`;
+  app.innerHTML=h;
+}
+
+/* ===== 게임 방법 ===== */
+function renderHelp(){
+  app.innerHTML=`<div class="panel">
+    <div style="font-size:18px;font-weight:800">❓ 게임 방법</div>
+    <div class="lead" style="margin-top:12px;line-height:1.9">
+      1️⃣ <b>모험 지도</b>에서 7개 과학 단원 중 하나를 골라요.<br>
+      2️⃣ 개념 카드를 눌러 <b>퀴즈</b>를 풀어요. 정답이면 <b>🃏 카드를 획득</b>!<br>
+      3️⃣ 틀려도 괜찮아요 — <b>📚 보충학습</b>을 읽고 다시 도전하면 넘어갈 수 있어요.<br>
+      4️⃣ 한 단원의 개념 카드를 모두 모으면 <b>🔮 조합</b>으로 <b>보스 몬스터</b>를 소환해요.<br>
+      5️⃣ 보스전(통합 심화 문제)을 이기면 <b>👑 보스 카드</b> 획득 & 단원 정복!<br>
+      6️⃣ 카드를 모을수록 내 캐릭터가 <b>진화</b>해요: 🥚 알 → 🐣 → 🦎 → 🦖 → 🐉 → 🦸 <b>과학 마스터</b>!
+    </div>
+    <div class="learnbox" style="margin-top:16px">
+      🎈 <b>기초</b> 카드는 재미있고 쉬워요. 📘 <b>개념</b>을 지나 🔥 <b>심화</b>·보스로 갈수록 "왜 그럴까?"를 생각하게 됩니다.
+      낮은 단계에서 자신감을 얻고, 높은 단계에서 진짜 과학의 재미를 느껴보세요!
+    </div>
+    <div style="text-align:center;margin-top:16px"><button class="btn" onclick="go('map')">🗺️ 모험 시작!</button></div>
+  </div>`;
+}
+
+/* ===== 모달/토스트 ===== */
+function closeModal(){ $("#modal").classList.remove("show"); }
+$("#modal").addEventListener("click",e=>{ if(e.target.id==="modal") closeModal(); });
+let toastTimer;
+function toast(msg){
+  const t=$("#toast"); t.textContent=msg; t.classList.add("show");
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove("show"),2200);
+}
+
+/* ===== 컨페티 ===== */
+const cvs=$("#confetti"), ctx=cvs.getContext("2d");
+let parts=[], raf=null;
+function resize(){ cvs.width=innerWidth; cvs.height=innerHeight; }
+resize(); addEventListener("resize",resize);
+function confetti(){
+  const colors=["#ffd54a","#7c5cff","#39d98a","#ff6b8a","#5c8bff","#ff9f43"];
+  for(let i=0;i<70;i++){
+    parts.push({x:innerWidth/2+(Math.random()-.5)*140, y:innerHeight*0.35,
+      vx:(Math.random()-.5)*9, vy:Math.random()*-9-3, g:0.28,
+      c:colors[i%colors.length], s:Math.random()*7+4, r:Math.random()*6, vr:(Math.random()-.5)*.3, life:90});
+  }
+  if(!raf) tick();
+}
+function tick(){
+  ctx.clearRect(0,0,cvs.width,cvs.height);
+  parts.forEach(p=>{ p.vy+=p.g; p.x+=p.vx; p.y+=p.vy; p.r+=p.vr; p.life--;
+    ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.r); ctx.fillStyle=p.c;
+    ctx.fillRect(-p.s/2,-p.s/2,p.s,p.s*.6); ctx.restore();
+  });
+  parts=parts.filter(p=>p.life>0 && p.y<cvs.height+40);
+  if(parts.length){ raf=requestAnimationFrame(tick); } else { ctx.clearRect(0,0,cvs.width,cvs.height); raf=null; }
+}
+
+/* ===== 초기화 ===== */
+function resetGame(){
+  if(confirm("정말 모든 기록을 지우고 처음부터 시작할까요?")){
+    state={owned:{},xp:0}; save(); lastStageIdx=0; updateHeader(); go('map');
+    toast("🔄 새 모험을 시작합니다!");
+  }
+}
+
+/* ===== 시작 ===== */
+updateHeader();
+go('map');
+</script>
+</body>
+</html>
