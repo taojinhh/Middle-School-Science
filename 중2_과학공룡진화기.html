@@ -875,7 +875,10 @@ document.getElementById("btnNew").onclick=()=>{
   st=freshState(nm); save(); renderMap(); show("screen-map");
 };
 document.getElementById("btnContinue").onclick=()=>{ renderMap(); show("screen-map"); };
-document.getElementById("btnHome").onclick=()=>{ if(st){ renderMap(); show("screen-map"); } else show("screen-start"); };
+document.getElementById("btnHome").onclick=()=>{
+  if(st){ renderMap(); show("screen-map"); }
+  else { show("screen-start"); toast("먼저 '새로 시작하기'로 공룡을 만들어 주세요! 🥚"); }
+};
 document.getElementById("btnBack").onclick=()=>{ renderMap(); show("screen-map"); };
 document.getElementById("btnClearNext").onclick=()=>{ renderMap(); show("screen-map"); };
 document.getElementById("btnReset").onclick=()=>{
